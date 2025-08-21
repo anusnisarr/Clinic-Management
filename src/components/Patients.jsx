@@ -1,12 +1,16 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import PatientFileModal from './PatientModal';
+import TokenReceipt from './TokenReceiptViewer';
 import axios from 'axios';
-import { socket } from  "../socket.js"
+import { socket } from "../socket.js"
 import { CalendarDays, User, Calendar, Phone, Mail, MapPin, Hash, Clock, UserPlus } from 'lucide-react';
 
 const Patients = () => {
   const [patients, setPatients] = useState([]);
+  const [showTokenReceipt, setShowTokenReceipt] = useState(false);
+  const [showTokenFile, setShowTokenFile] = useState(false);
+
   const [editedPatientId, setEditedPatientId] = useState("");
   const [todayPatients, setTodayPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -37,23 +41,22 @@ const Patients = () => {
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState([]);
 
+  socket.on("status-updated", (data) => {
 
-   socket.on("status-updated", (data) => {
+    setPatients((prevPatients) => {
 
-     setPatients((prevPatients) => {
+      return prevPatients.map((patient) => {
+        if (patient._id === data.patientId) {
+          return { ...patient, status: data.newStatus };
+        }
+        return patient;
 
-        return prevPatients.map((patient) => {
-          if (patient._id === data.patientId) {
-            return { ...patient, status: data.newStatus };
-          }
-          return patient;
-
-        });
       });
-     
+    });
+
   });
-  
-  
+
+
   // const handlePatientClick = async (PATIENT) => {
   //   try {
   //     const res = await axios.get(`http://localhost:3000/patient/details/${id}`);
@@ -75,37 +78,36 @@ const Patients = () => {
     }
   }
 
-  const filterTodayPatient = () => {
-    const today = new Date().toDateString()
+  // const filterTodayPatient = () => {
+  //   const today = new Date().toDateString()
 
-    const todayPatient = patients.filter((patient) => {
-      const patientUpdateAt = new Date(patient.updatedAt).toDateString();
-      return patientUpdateAt === today;
-    })
-    
-    return todayPatient
-  }
+  //   const todayPatient = patients.filter((patient) => {
+  //     const patientUpdateAt = new Date(patient.updatedAt).toDateString();
+  //     return patientUpdateAt === today;
+  //   })
 
-const todayPatient = async () => {
-      
-      try {
-          const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
-          
-          setPatients(todayPatient.data)
-  
-          console.log(`today patient data `, todayPatient.data)
-      } catch (error) {
-        console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
-      } finally {
+  //   return todayPatient
+  // }
+
+  const todayPatient = async () => {
+
+    try {
+      const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
+
+      setPatients(todayPatient.data)
+
+    } catch (error) {
+      console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
+    } finally {
       setLoading(false)
     }
-    }
+  }
 
-useEffect(() => {
-  todayPatient()
-}, [])
+  useEffect(() => {
+    todayPatient()
+  }, [])
 
-//for future use
+  //for future use
   // const getAllPatient = async () => {
 
   //   try {
@@ -123,7 +125,6 @@ useEffect(() => {
 
 
   const getPatientByPhone = async (phone) => {
-    console.log("phone", phone);
 
     if (phone.length < 4) return;
 
@@ -144,17 +145,14 @@ useEffect(() => {
 
   // Generate next token number
   const generateNextToken = () => {
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const todayPatients = patients.filter(p => p.tokenNo.startsWith(today));
-    const nextNumber = (todayPatients.length + 1).toString().padStart(3, '0');
-    return `${today}${nextNumber}`;
+    const nextNumber = (patients.length + 1).toString().padStart(3, '0');
+    return nextNumber;
   };
+
 
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(name, "|", value);
-
 
     if (name === "age" && value < 0) return;
 
@@ -184,8 +182,8 @@ useEffect(() => {
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!formData.age) newErrors.age = 'Age is required';
-    if (!formData.gender) newErrors.gender = 'Gender is required';
+    // if (!formData.age) newErrors.age = 'Age is required';
+    // if (!formData.gender) newErrors.gender = 'Gender is required';
 
     // Phone validation
     if (formData.phone && !/^\d{11,14}$/.test(formData.phone.replace(/\D/g, ''))) {
@@ -220,7 +218,7 @@ useEffect(() => {
 
       try {
         const updatedPatient = await axios.patch(`http://localhost:3000/patient/update/${editedPatientId}`, updatePatient)
-        
+
         // setPatients(prev =>
         // prev.map(patient =>
         //   patient._id === editedPatientId ? updatedPatient.data : patient
@@ -329,7 +327,7 @@ useEffect(() => {
         </div>
 
         <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
-         onClick={deleteAll}>delete all data</button>
+          onClick={deleteAll}>delete all data</button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Registration Form */}
@@ -380,8 +378,19 @@ useEffect(() => {
                           <li
                             key={patient._id}
                             className="flex justify-between items-center  p-2 hover:bg-gray-100 cursor-pointer text-sm"
-                            onClick={() => {
-                              setPhoneInput(patient.phone);
+                            onClick={(e) => {
+                              const AlreadyGenerated = patients.some((clickedPatient) =>clickedPatient._id === patient._id );
+                            
+                                if (AlreadyGenerated) {
+                                  
+                                  setShowTokenReceipt(false)
+                                  setErrors({ message: "Token Already Generated!" })
+
+                                } else {
+                                  setShowTokenReceipt(true)                                           
+                                }
+                              
+                              setSelectedPatient(patient)
                               setSuggestions([]);
                             }}
                           >
@@ -396,12 +405,52 @@ useEffect(() => {
                             >
                               Edit
                             </button>
-
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
+
+                  <TokenReceipt
+                    isOpen={showTokenReceipt}
+                    onClose={() => setShowTokenReceipt(false)}
+                    errors = {errors}
+                    setErrors = {setErrors}
+                    generateToken={() => {
+                      setPatients((prevPatients) => {
+
+                        return prevPatients.map((patient) => {
+                          if (patient._id !== selectedPatient._id) {
+                            return { ...patient, tokenNo: currentToken , updatedAt : new Date };
+                          }
+                          return patient;
+
+                        });
+                      });
+
+                      setCurrentToken(generateNextToken());
+                      setShowTokenReceipt(false)
+
+                    }}
+                    tokenData={{
+                      tokenNumber: currentToken,
+                      createdAt: new Date(),
+                      status: 'waiting',
+                      estimatedTime: '10:30 AM',
+                      department: 'General Medicine',
+                      doctor: 'Dr. Sarah Wilson',
+                      queuePosition: 3,
+                      notes: 'Follow up appointment',
+                      instructions: 'Please bring previous test results'
+                    }}
+                    patientData={selectedPatient}
+                    clinicInfo={{
+                      name: "City Medical Clinic",
+                      address: "123 Health Street, Medical District",
+                      phone: "+1-555-CLINIC",
+                      website: "www.citymedicalclinic.com"
+                    }}
+                  />
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -483,7 +532,7 @@ useEffect(() => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Age *
+                      Age
                     </label>
                     <div className="relative">
                       <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -502,7 +551,7 @@ useEffect(() => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Gender *
+                      Gender
                     </label>
                     <select
                       name="gender"
@@ -634,7 +683,10 @@ useEffect(() => {
                   ) : (
                     patients?.slice().reverse().map((patient) => (
                       <div key={patient._id}
-                      onClick={ () => (setSelectedPatient(patient))}
+                        onClick={() => {
+                          setSelectedPatient(patient)
+                          setShowTokenFile(true)                          
+                        }}
                         className={`p-3 border rounded-lg ${patient.priority === 'emergency' ? 'border-red-200 bg-red-50' :
                           patient?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
                             'border-gray-200 bg-gray-50'
@@ -653,7 +705,7 @@ useEffect(() => {
                         <div className="text-sm text-gray-700">
                           {patient?.firstName} {patient.lastName}
                         </div>
-                        <div  className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-gray-500 mt-1">
                           {patient?.appointmentType} • {patient.registrationTime}
                         </div>
 
@@ -661,7 +713,7 @@ useEffect(() => {
                     ))
                   )
                 )}
-                <PatientFileModal patient={selectedPatient} onClose={() => setSelectedPatient(null)} />
+                <PatientFileModal isOpen={showTokenFile} patient={selectedPatient} onClose={() => {setSelectedPatient(null) , setShowTokenFile(false)}} />
               </div>
             </div>
           </div>

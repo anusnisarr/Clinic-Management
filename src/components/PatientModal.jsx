@@ -1,7 +1,10 @@
 // PatientModal.jsx
 import React from 'react';
-const PatientFileModal = ({ patient, onClose }) => {
-  if (!patient) return null;
+const PatientFileModal = ({ patient,  isOpen , onClose }) => {
+  if (!patient || !isOpen) return null;
+  console.log(patient);
+  console.log(isOpen);
+  
 
   return (
     <div className="fixed inset-0 bg-gray-300/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -60,9 +63,9 @@ const PatientFileModal = ({ patient, onClose }) => {
           </h2>
           
           <div className="text-sm space-y-2">
-            <p><strong>Diagnosis:</strong> Acute pharyngitis (J02.9)</p>
+            <p><strong>Diagnosis:</strong> {patient.medicalHistory[0]?.diagnosis}</p>
             <p><strong>Treatment Plan:</strong> Amoxicillin 500mg TID × 7 days</p>
-            <p><strong>Doctor's Remarks:</strong> Patient presents with 3-day history of sore throat. No fever. Tonsils 2+ erythema.</p>
+            <p><strong>Doctor's Remarks:</strong> {patient.medicalHistory[0]?.notes}</p>
           </div>
         </div>
 

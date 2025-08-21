@@ -189,15 +189,15 @@ const PatientManagementSystem = () => {
     setSelectedPatient(null);
   };
 
-  const handleMarkDone = async (patientId) => {
+  const handleAtionButtons = async (patientId , status) => {
 
       socket.emit("status-updated", {
         patientId: patientId,
-        newStatus: "Check-Up Done"
+        newStatus: status
       });
 
       try {
-        const statusUpdated = await axios.patch(`http://localhost:3000/patient/update/${patientId}`, {status : "Check-Up Done" })
+        const statusUpdated = await axios.patch(`http://localhost:3000/patient/update/${patientId}`, {status : status })
       
         console.log("statusUpdated" , statusUpdated.data);
         
@@ -205,17 +205,8 @@ const PatientManagementSystem = () => {
         console.error('❌ Error:', error.response?.data || error.message);
       }
     
-        
-    console.log('Mark as done:', patientId);
-
-
-
   };
 
-  const handleHold = (patientId) => {
-    console.log('Hold patient:', patientId);
-    // Add your logic here
-  };
 
   const addMedicine = () => {
     setCurrentVisit(prev => ({
@@ -407,7 +398,7 @@ const PatientManagementSystem = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleMarkDone(patient._id);
+                              handleAtionButtons(patient._id , "Checkup Done");
                             }}
                             className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                           >
@@ -416,7 +407,7 @@ const PatientManagementSystem = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleHold(patient._id);
+                              handleAtionButtons(patient._id , "On Hold");
                             }}
                             className="px-3 py-1 text-sm bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
                           >

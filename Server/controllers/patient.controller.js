@@ -2,23 +2,28 @@ import Patient from "../models/patient.models.js"
 
 export const getTodayPatient = async (req , res) => {
     
-    try {
-        const start = new Date();
-        start.setHours(0, 0, 0, 0); // today 00:00:00
+  try {
 
-        const end = new Date();
-        end.setHours(23, 59, 59, 999); // today 23:59:59.999
+const start = new Date();
+start.setHours(0, 0, 0, 0); // today at 00:00:00 local time
 
-        const GetTodayPatients = await Patient.find({
-        updatedAt: { $gte: start, $lte: end }
-        });
+const end = new Date();
+end.setHours(23, 59, 59, 999); // today at 23:59:59 local time
 
-        res.status(201).json(GetTodayPatients);  
+const GetTodayPatients = await Patient.find({
+  updatedAt: { $gte: start, $lte: end }
+});
 
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-        console.error('error:' ,  error.message)
-    }
+    const todayPatients = await Patient.find(
+      { updatedAt: { $gte: start, $lt: end } }
+      // .hint({ updatedAt: 1 })        // <= optional index hint
+    );
+
+    return res.status(200).json(todayPatients);
+  } catch (err) {
+    console.error("getTodayPatients error:", err.message);
+    return res.status(500).json({ error: "Server error" });
+  }
 
 }
 
