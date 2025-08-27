@@ -3,3 +3,9 @@
 .clip-triangle {
   clip-path: polygon(0 0, 100% 100%, 100% 0);
 }
+
+body, html {
+  position: relative !important;
+  overflow-y: auto !important;
+  height: auto !important;
+}
