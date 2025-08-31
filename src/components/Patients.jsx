@@ -8,12 +8,18 @@ import { CalendarDays, User, Calendar, Phone, Mail, MapPin, Hash, Clock, UserPlu
 
 const Patients = () => {
   const [patients, setPatients] = useState([]);
+  
   const [showTokenReceipt, setShowTokenReceipt] = useState(false);
   const [showTokenFile, setShowTokenFile] = useState(false);
 
   const [editedPatientId, setEditedPatientId] = useState("");
   const [todayPatients, setTodayPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
+
+  const [errors, setErrors] = useState({});
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [suggestions, setSuggestions] = useState([]);
 
   const [currentToken, setCurrentToken] = useState(() => {
     // Start token from today's date + sequential number
@@ -36,10 +42,18 @@ const Patients = () => {
     medicalHistory: []
   });
 
-  const [errors, setErrors] = useState({});
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [suggestions, setSuggestions] = useState([]);
+  // get all patient when refresh
+  useEffect(() => {
+    getAllPatient()
+    console.log(patients);
+
+    // todayPatient()
+  }, [])
+
+  // Update current token when patients change
+  useEffect(() => {
+    setCurrentToken(generateNextToken());
+  }, [patients]);
 
   socket.on("status-updated", (data) => {
 
@@ -55,7 +69,6 @@ const Patients = () => {
     });
 
   });
-
 
   // const handlePatientClick = async (PATIENT) => {
   //   try {
@@ -89,33 +102,15 @@ const Patients = () => {
   //   return todayPatient
   // }
 
-  const todayPatient = async () => {
-
-    try {
-      const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
-
-      setPatients(todayPatient.data)
-
-    } catch (error) {
-      console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    todayPatient()
-  }, [])
 
   //for future use
-  // const getAllPatient = async () => {
+  // const todayPatient = async () => {
 
   //   try {
-  //     const allPatient = await axios.get(`http://localhost:3000/patient/`)
+  //     const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
 
-  //     setPatients(allPatient.data)
+  //     setPatients(todayPatient.data)
 
-  //     console.log(`all patient data `, allPatient.data)
   //   } catch (error) {
   //     console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
   //   } finally {
@@ -123,6 +118,20 @@ const Patients = () => {
   //   }
   // }
 
+  const getAllPatient = async () => {
+
+    try {
+      const allPatient = await axios.get(`http://localhost:3000/patient/`)
+
+      setPatients(allPatient.data)
+
+      console.log(`all patient data `, allPatient.data)
+    } catch (error) {
+      console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getPatientByPhone = async (phone) => {
 
@@ -148,7 +157,6 @@ const Patients = () => {
     const nextNumber = (patients.length + 1).toString().padStart(3, '0');
     return nextNumber;
   };
-
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -297,11 +305,6 @@ const Patients = () => {
 
   }
 
-  // Update current token when patients change
-  useEffect(() => {
-    setCurrentToken(generateNextToken());
-  }, [patients]);
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -374,10 +377,15 @@ const Patients = () => {
                     {suggestions.length > 0 && (
                       <ul className="absolute left-0 right-0 mt-1 z-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
                         {suggestions.map((patient) => (
+                          
                           <li
                             key={patient._id}
                             className="flex justify-between items-center  p-2 hover:bg-gray-100 cursor-pointer text-sm"
                             onClick={(e) => {
+                              console.log(patients);
+                              console.log(patient._id);
+
+                              
                               const AlreadyGenerated = patients.some((patient) => patient._id === patient._id);
 
                               if (AlreadyGenerated) {
@@ -736,7 +744,5 @@ const Patients = () => {
     </div>
   );
 };
-
-
 
 export default Patients;
