@@ -79,8 +79,9 @@ export const registerPatient = async (req , res) => {
 
 export const updatePatientInfo = async (req , res) => {
     const { id } = req.params
+    const { body } = req.body || {};
     try {
-        const updatedPatient = await Patient.findByIdAndUpdate(id , {$set:req.body} , { new: true })
+        const updatedPatient = await Patient.findByIdAndUpdate(id , {$set:body} , { new: true })
         
         res.status(201).json(updatedPatient);
         

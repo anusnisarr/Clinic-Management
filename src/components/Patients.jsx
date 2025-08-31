@@ -231,7 +231,6 @@ const Patients = () => {
       }
 
     } else {
-
       const newPatient = {
         ...formData,
         tokenNo: currentToken,
@@ -379,17 +378,32 @@ const Patients = () => {
                             key={patient._id}
                             className="flex justify-between items-center  p-2 hover:bg-gray-100 cursor-pointer text-sm"
                             onClick={(e) => {
-                              const AlreadyGenerated = patients.some((clickedPatient) =>clickedPatient._id === patient._id );
-                            
-                                if (AlreadyGenerated) {
-                                  
-                                  setShowTokenReceipt(false)
-                                  setErrors({ message: "Token Already Generated!" })
+                              const AlreadyGenerated = patients.some((patient) => patient._id === patient._id);
 
-                                } else {
-                                  setShowTokenReceipt(true)                                           
+                              if (AlreadyGenerated) {
+
+                                setShowTokenReceipt(false)
+                                setErrors({ message: "Token Already Generated!" })
+
+                              } else {
+                                setShowTokenReceipt(true);
+
+                                (async () => {
+
+                                try {
+                                  const patientUpdated = await axios.patch(`http://localhost:3000/patient/update/${patient._id}`)
+
+                                  setPatients(prev => [...prev, patientUpdated.data]);
+
+                                } catch (error) {
+                                  console.error('❌ Error:', error.response?.data || error.message);
                                 }
-                              
+
+                              })();
+
+
+                              }
+
                               setSelectedPatient(patient)
                               setSuggestions([]);
                             }}
@@ -414,14 +428,14 @@ const Patients = () => {
                   <TokenReceipt
                     isOpen={showTokenReceipt}
                     onClose={() => setShowTokenReceipt(false)}
-                    errors = {errors}
-                    setErrors = {setErrors}
+                    errors={errors}
+                    setErrors={setErrors}
                     generateToken={() => {
                       setPatients((prevPatients) => {
 
                         return prevPatients.map((patient) => {
                           if (patient._id !== selectedPatient._id) {
-                            return { ...patient, tokenNo: currentToken , updatedAt : new Date };
+                            return { ...patient, tokenNo: currentToken, updatedAt: new Date };
                           }
                           return patient;
 
@@ -685,7 +699,7 @@ const Patients = () => {
                       <div key={patient._id}
                         onClick={() => {
                           setSelectedPatient(patient)
-                          setShowTokenFile(true)                          
+                          setShowTokenFile(true)
                         }}
                         className={`p-3 border rounded-lg ${patient.priority === 'emergency' ? 'border-red-200 bg-red-50' :
                           patient?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
@@ -713,7 +727,7 @@ const Patients = () => {
                     ))
                   )
                 )}
-                <PatientFileModal isOpen={showTokenFile} patient={selectedPatient} onClose={() => {setSelectedPatient(null) , setShowTokenFile(false)}} />
+                <PatientFileModal isOpen={showTokenFile} patient={selectedPatient} onClose={() => { setSelectedPatient(null), setShowTokenFile(false) }} />
               </div>
             </div>
           </div>
