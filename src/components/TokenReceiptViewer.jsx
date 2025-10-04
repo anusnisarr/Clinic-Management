@@ -43,7 +43,7 @@ const TokenReceipt = ({
 
 
           {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b">
+          <div className="flex justify-between items-center p-6 border-b no-print">
             <h2 className="text-xl font-semibold">Token Receipt</h2>
             <button
               onClick={onClose}
@@ -54,7 +54,8 @@ const TokenReceipt = ({
           </div>
 
           {/* Receipt Content */}
-          <div className="p-6 space-y-6">
+        <div id="receipt-content" className="p-1 space-y-1">
+
             {/* Clinic Info */}
             <div className="text-center border-b pb-4">
               <h3 className="text-lg font-bold text-gray-900">{clinicInfo.name}</h3>
@@ -71,6 +72,8 @@ const TokenReceipt = ({
               )}
             </div>
 
+            <hr />
+
             {/* Token Info */}
             <div className="text-center bg-blue-50 p-4 rounded-lg">
               <h4 className="text-2xl font-bold text-blue-600 mb-2">{tokenData.tokenNumber}</h4>
@@ -79,6 +82,8 @@ const TokenReceipt = ({
                 {new Date(tokenData.createdAt).toLocaleDateString()} at {new Date(tokenData.createdAt).toLocaleTimeString()}
               </p>
             </div>
+
+            <hr />
 
             {/* Patient Details */}
             {patientData && (
@@ -131,50 +136,12 @@ const TokenReceipt = ({
                     <span className="font-medium">{tokenData.doctor}</span>
                   </div>
                 )}
-                {/* {tokenData.queuePosition && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Queue Position:</span>
-                  <span className="font-medium">{tokenData.queuePosition}</span>
-                </div>
-              )}
-              {tokenData.estimatedTime && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Estimated Time:</span>
-                  <span className="font-medium flex items-center">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {tokenData.estimatedTime}
-                  </span>
-                </div>
-              )} */}
-                {/* {tokenData.status && (
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Status:</span>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(tokenData.status)}`}>
-                    {tokenData.status.toUpperCase()}
-                  </span>
-                </div>
-              )} */}
               </div>
             </div>
 
-            {/* Additional Info */}
-            {/* {(tokenData.notes || tokenData.instructions) && (
-            <div className="space-y-3">
-              <h4 className="font-semibold text-gray-900">Additional Information</h4>
-              {tokenData.notes && (
-                <div className="text-sm">
-                  <span className="text-gray-600">Notes:</span>
-                  <p className="font-medium mt-1">{tokenData.notes}</p>
-                </div>
-              )}
-              {tokenData.instructions && (
-                <div className="text-sm">
-                  <span className="text-gray-600">Instructions:</span>
-                  <p className="font-medium mt-1">{tokenData.instructions}</p>
-                </div>
-              )}
-            </div>
-          )} */}
+
+            <hr />
+
 
             {/* Default Instructions */}
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -188,7 +155,7 @@ const TokenReceipt = ({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 p-6 border-t">
+          <div className="flex gap-3 p-6 border-t no-print">
             <button
               onClick={printReceipt}
               className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"

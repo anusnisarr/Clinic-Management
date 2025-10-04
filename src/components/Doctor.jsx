@@ -144,10 +144,9 @@ const PatientManagementSystem = () => {
         const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
         
         setPatients(todayPatient.data)
-
         console.log(`today patient data `, todayPatient.data)
     } catch (error) {
-      console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
+      console.error(`Error Getting Patients data : ${error.response?.data || error.message}`)
     } finally{
       setLoading(false)
     }
@@ -171,7 +170,7 @@ const PatientManagementSystem = () => {
 
   useEffect(() => {
       todayPatient()    
-  }, [patients] )
+  }, [])
 
   const handlePatientClick = (patient) => {
     setSelectedPatient(patient);
@@ -195,9 +194,10 @@ const PatientManagementSystem = () => {
         patientId: patientId,
         newStatus: status
       });
-
+      
       try {
-        const statusUpdated = await axios.patch(`http://localhost:3000/patient/update/${patientId}`, {status : status })
+        
+        const statusUpdated = await axios.patch(`http://localhost:3000/patient/update/${patientId}`, { status })
       
         console.log("statusUpdated" , statusUpdated.data);
         
@@ -206,7 +206,6 @@ const PatientManagementSystem = () => {
       }
     
   };
-
 
   const addMedicine = () => {
     setCurrentVisit(prev => ({

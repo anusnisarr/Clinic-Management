@@ -8,7 +8,7 @@ import { CalendarDays, User, Calendar, Phone, Mail, MapPin, Hash, Clock, UserPlu
 
 const Patients = () => {
   const [patients, setPatients] = useState([]);
-  
+
   const [showTokenReceipt, setShowTokenReceipt] = useState(false);
   const [showTokenFile, setShowTokenFile] = useState(false);
 
@@ -21,11 +21,17 @@ const Patients = () => {
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState([]);
 
-  const [currentToken, setCurrentToken] = useState(() => {
-    // Start token from today's date + sequential number
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    return `${today}001`;
-  });
+  // const [currentToken, setCurrentToken] = useState(() => {
+  //   // Start token from today's date + sequential number
+  //   const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  //   return `${today}001`;
+  // });
+
+  const currentToken = useMemo(() => {
+    if (loading) return '';
+    return (todayPatients.length + 1).toString().padStart(3, '0');
+  }, [todayPatients, loading]);
+
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -45,39 +51,25 @@ const Patients = () => {
   // get all patient when refresh
   useEffect(() => {
     getAllPatient()
-    console.log(patients);
-
-    // todayPatient()
   }, [])
 
   // Update current token when patients change
   useEffect(() => {
-    setCurrentToken(generateNextToken());
-  }, [patients]);
+    todayPatient()
+  }, [todayPatients]);
 
   socket.on("status-updated", (data) => {
+    setTodayPatients(prevPatients =>
+      prevPatients.map(patient => {
 
-    setPatients((prevPatients) => {
-
-      return prevPatients.map((patient) => {
         if (patient._id === data.patientId) {
           return { ...patient, status: data.newStatus };
         }
         return patient;
 
-      });
-    });
-
+      })
+    );
   });
-
-  // const handlePatientClick = async (PATIENT) => {
-  //   try {
-  //     const res = await axios.get(`http://localhost:3000/patient/details/${id}`);
-  //     setSelectedPatient(res.data);
-  //   } catch (error) {
-  //     console.error('Error fetching patient details:', error);
-  //   }
-  // };
 
   const deleteAll = async () => {
     try {
@@ -91,32 +83,35 @@ const Patients = () => {
     }
   }
 
-  // const filterTodayPatient = () => {
-  //   const today = new Date().toDateString()
+  const runFunction = async () => {
+    console.log("Total Patients", patients);
+    console.log("Today Patients", todayPatients);
+    console.log("currently Selected Patient", selectedPatient);
+    console.log("CcurrentToken", currentToken);
 
-  //   const todayPatient = patients.filter((patient) => {
-  //     const patientUpdateAt = new Date(patient.updatedAt).toDateString();
-  //     return patientUpdateAt === today;
-  //   })
+    setTodayPatients(prevPatients =>
+      prevPatients.map(prev => ({
+        ...prev,
+        updatedAt: new Date(prev.updatedAt + 20)
+      })
+      )
+    )
+  }
 
-  //   return todayPatient
-  // }
 
+  const todayPatient = async () => {
 
-  //for future use
-  // const todayPatient = async () => {
+    try {
+      const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
 
-  //   try {
-  //     const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
+      setTodayPatients(todayPatient.data)
 
-  //     setPatients(todayPatient.data)
-
-  //   } catch (error) {
-  //     console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
+    } catch (error) {
+      console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getAllPatient = async () => {
 
@@ -154,7 +149,7 @@ const Patients = () => {
 
   // Generate next token number
   const generateNextToken = () => {
-    const nextNumber = (patients.length + 1).toString().padStart(3, '0');
+    const nextNumber = (todayPatients.length + 1).toString().padStart(3, '0');
     return nextNumber;
   };
 
@@ -204,7 +199,7 @@ const Patients = () => {
     }
 
     setErrors(newErrors);
-    console.error(newErrors);
+    if (newErrors) console.error(newErrors);
 
     return Object.keys(newErrors).length === 0;
 
@@ -215,24 +210,17 @@ const Patients = () => {
 
     if (!validateForm()) return;
 
-
     if (editedPatientId) {
 
-      const updatePatient = {
-        ...formData,
-        // tokenNo: currentToken,
-        // status: 'waiting'
-      };
-
       try {
-        const updatedPatient = await axios.patch(`http://localhost:3000/patient/update/${editedPatientId}`, updatePatient)
+        const updatedPatient = await axios.patch(`http://localhost:3000/patient/update/${editedPatientId}`, { ...formData })
 
-        // setPatients(prev =>
-        // prev.map(patient =>
-        //   patient._id === editedPatientId ? updatedPatient.data : patient
-        // )
+        setPatients(prev =>
+          prev.map(patient =>
+            patient._id === editedPatientId ? updatedPatient.data : patient
+          )
 
-        // );
+        );
 
       } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
@@ -253,15 +241,13 @@ const Patients = () => {
       try {
         const patient = await axios.post('http://localhost:3000/patient/Create', newPatient)
 
-        setPatients(prev => [...prev, patient.data]);
+        setTodayPatients(prev => [...prev, patient.data]);
 
       } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
       }
 
     }
-
-    setCurrentToken(generateNextToken());
 
     // Reset form
     setFormData({
@@ -320,16 +306,24 @@ const Patients = () => {
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-500">Next Token Number</div>
-              <div className="text-2xl font-bold text-blue-600 flex items-center">
-                <Hash className="h-5 w-5 mr-1" />
-                {currentToken}
-              </div>
+              {loading ?
+                (
+                  <p>Loading Token...</p>
+                ) :
+                (<div className="text-2xl font-bold text-blue-600 flex items-center justify-end">
+                  <Hash className="h-5 w-5 mr-1" />
+                  {currentToken}
+                </div>
+                )}
             </div>
           </div>
         </div>
 
         <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
           onClick={deleteAll}>delete all data</button>
+
+        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
+          onClick={runFunction}>Run Function</button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Registration Form */}
@@ -377,16 +371,13 @@ const Patients = () => {
                     {suggestions.length > 0 && (
                       <ul className="absolute left-0 right-0 mt-1 z-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
                         {suggestions.map((patient) => (
-                          
+
                           <li
                             key={patient._id}
                             className="flex justify-between items-center  p-2 hover:bg-gray-100 cursor-pointer text-sm"
                             onClick={(e) => {
-                              console.log(patients);
-                              console.log(patient._id);
 
-                              
-                              const AlreadyGenerated = patients.some((patient) => patient._id === patient._id);
+                              const AlreadyGenerated = todayPatients.some((todayPatient) => todayPatient._id === patient._id);
 
                               if (AlreadyGenerated) {
 
@@ -398,16 +389,16 @@ const Patients = () => {
 
                                 (async () => {
 
-                                try {
-                                  const patientUpdated = await axios.patch(`http://localhost:3000/patient/update/${patient._id}`)
+                                  try {
+                                    const patientUpdated = await axios.patch(`http://localhost:3000/patient/update/${patient._id}`)
 
-                                  setPatients(prev => [...prev, patientUpdated.data]);
+                                    setTodayPatients(prev => [...prev, patientUpdated.data]);
 
-                                } catch (error) {
-                                  console.error('❌ Error:', error.response?.data || error.message);
-                                }
+                                  } catch (error) {
+                                    console.error('❌ Error:', error.response?.data || error.message);
+                                  }
 
-                              })();
+                                })();
 
 
                               }
@@ -443,8 +434,10 @@ const Patients = () => {
 
                         return prevPatients.map((patient) => {
                           if (patient._id !== selectedPatient._id) {
-                            return { ...patient, tokenNo: currentToken, updatedAt: new Date };
+
+                            return { ...patient, tokenNo: currentToken, updatedAt: new Date() };
                           }
+                          console.log(patient, currentToken);
                           return patient;
 
                         });
@@ -682,61 +675,75 @@ const Patients = () => {
           </div>
 
           {/* Today's Patients Queue */}
-
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Today's Queue</h2>
-                <div className="text-sm text-gray-500 flex items-center">
-                  <Clock className="h-4 w-4 mr-1" />
-                  {patients.length} patients
-                </div>
+          <div className="flex flex-col h-[calc(100vh-200px)]">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Today's Queue</h2>
+              <div className="text-sm text-gray-500 flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                {todayPatients?.length} patients
               </div>
+            </div>
 
-              <div className="space-y-3 max-h-99 overflow-y-auto">
-                {loading ? (
-                  <p>Loading patients...</p>
+            <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-white rounded-lg shadow-sm">
+              {loading ? (
+                <p>Loading patients...</p>
+              ) : (
+                todayPatients.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>No patients registered today</p>
+                  </div>
                 ) : (
-                  patients.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                      <p>No patients registered today</p>
-                    </div>
-                  ) : (
-                    patients?.slice().reverse().map((patient) => (
-                      <div key={patient._id}
-                        onClick={() => {
-                          setSelectedPatient(patient)
-                          setShowTokenFile(true)
-                        }}
-                        className={`p-3 border rounded-lg ${patient.priority === 'emergency' ? 'border-red-200 bg-red-50' :
-                          patient?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
-                            'border-gray-200 bg-gray-50'
+                  todayPatients?.slice().reverse().map((patient) => (
+                    <div key={patient._id}
+                      onClick={() => {
+                        setSelectedPatient(patient)
+                        setShowTokenReceipt(true)
+                      }}
+                      className={`p-3 border rounded-lg ${patient.priority === 'emergency' ? 'border-red-200 bg-red-50' :
+                        patient?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
+                          'border-gray-200 bg-gray-50'
+                        }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium text-gray-900">
+                          #{patient?.tokenNo.slice(-3)}
+                        </div>
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${patient.priority === 'emergency' ? 'bg-red-100 text-red-800' :
+                          patient?.priority === 'urgent' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-800'
                           }`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="font-medium text-gray-900">
-                            #{patient?.tokenNo.slice(-3)}
-                          </div>
-                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${patient.priority === 'emergency' ? 'bg-red-100 text-red-800' :
-                            patient?.priority === 'urgent' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-green-100 text-green-800'
-                            }`}>
-                            {patient?.status}
-                          </div>
+                          {patient?.status}
                         </div>
-                        <div className="text-sm text-gray-700">
-                          {patient?.firstName} {patient.lastName}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {patient?.appointmentType} • {patient.registrationTime}
-                        </div>
-
                       </div>
-                    ))
-                  )
-                )}
-                <PatientFileModal isOpen={showTokenFile} patient={selectedPatient} onClose={() => { setSelectedPatient(null), setShowTokenFile(false) }} />
-              </div>
+                      <div className="text-sm text-gray-700">
+                        {patient?.firstName} {patient.lastName}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {patient?.appointmentType} • {patient.registrationTime}
+                      </div>
+
+                    </div>
+                  ))
+                )
+              )}
+              <TokenReceipt
+                isOpen={showTokenReceipt}
+                onClose={() => setShowTokenReceipt(false)}
+                errors={errors}
+                setErrors={setErrors}
+                tokenData={{
+                  tokenNumber: selectedPatient?.tokenNo || "",
+                  createdAt: selectedPatient?.updatedAt || "",
+                  status: selectedPatient?.updatedAt || "",
+                  estimatedTime: '10:30 AM',
+                  department: 'General Medicine',
+                  doctor: 'Dr. Sarah Wilson',
+                  queuePosition: selectedPatient?.tokenNo || "",
+                  notes: 'Follow up appointment',
+                  instructions: 'Please bring previous test results'
+                }}
+              />
+              {/* <PatientFileModal isOpen={showTokenReceipt} patient={selectedPatient} onClose={() => { setSelectedPatient(null), setShowTokenReceipt(false) }} /> */}
             </div>
           </div>
         </div>
