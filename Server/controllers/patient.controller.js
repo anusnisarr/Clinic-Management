@@ -29,7 +29,7 @@ export const getTodayPatient = async (req, res) => {
 export const searchPatientByPhone = async (req, res) => {
 
     const { phone } = req.query
-
+    
     try {
         if (!phone || phone.length < 4) {
             return res.status(200).json([]); // Don't search if too short
@@ -44,8 +44,8 @@ export const searchPatientByPhone = async (req, res) => {
         }).limit(5);
 
         res.status(200).json(matches);
-
-
+        console.log(matches);
+        
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -78,15 +78,16 @@ export const registerPatient = async (req, res) => {
 
 export const updatePatientInfo = async (req, res) => {
     const { id } = req.params
-    const { status } = req.body || {};
+    const { status , tokenNo } = req.body || {};
     
     try {
-        const updatedPatient = await Patient.findByIdAndUpdate(id, { $set: {status} }, { new: true })
+        const updatedPatient = await Patient.findByIdAndUpdate(id, { $set: {status , tokenNo} }, { new: true })
         
         if (!updatedPatient) {
             return res.status(404).json({ message: "Patient not found" });
         }
-
+        console.log(updatedPatient);
+        
         res.status(201).json(updatedPatient);
         
     } catch (error) {

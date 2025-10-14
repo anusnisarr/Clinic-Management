@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect , useRef } from 'react';
 import { X, Printer, Download, User, Clock, Hash, Calendar, Phone, MapPin } from 'lucide-react';
 
 const TokenReceipt = ({
@@ -6,8 +6,6 @@ const TokenReceipt = ({
   onClose,
   errors,
   setErrors,
-  generateToken,
-  setQeue,
   tokenData,
   patientData,
   clinicInfo = {
@@ -17,6 +15,7 @@ const TokenReceipt = ({
     website: "www.citymedicalclinic.com"
   }
 }) => {
+  const receiptRef = useRef();
 
   useEffect(() => {
     if (errors?.message) {
@@ -25,156 +24,249 @@ const TokenReceipt = ({
     }
   }, [errors]);
 
-  if (!isOpen || !tokenData) return null;
+const printReceipt = () => {
+  const receiptElement = document.getElementById("receipt-content");
+  if (!receiptElement) return;
 
-  // Print receipt
-  const printReceipt = () => {
-    window.print();
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+
+  // ✅ Copy your Tailwind styles from the page
+  const styles = Array.from(document.styleSheets)
+    .map((sheet) => {
+      try {
+        return Array.from(sheet.cssRules)
+          .map((rule) => rule.cssText)
+          .join("\n");
+      } catch (e) {
+        return "";
+      }
+    })
+    .join("\n");
+
+  doc.open();
+  // doc.write(`
+  //   <html>
+  //     <head>
+  //       <title>Token Receipt</title>
+  //       <style>
+  //         @page {
+  //           size: 80mm auto;
+  //           margin: 2mm;
+  //         }
+
+  //         body {
+  //           width: 80mm;
+  //           margin: 0 auto;
+  //           color: #000;
+  //           background: #fff;
+  //           font-size: 13px;
+  //           -webkit-print-color-adjust: exact !important;
+  //           print-color-adjust: exact !important;
+  //         }
+
+  //         * {
+  //           color: #000 !important;
+  //         }
+
+  //         ${styles}
+  //       </style>
+  //     </head>
+  //     <body>
+  //       <div id="print-area">${receiptElement.outerHTML}</div>
+  //     </body>
+  //   </html>
+  // `);
+ const html = `
+    <html>
+      <head>
+        <title>Token Receipt</title>
+        <style>
+          @page {
+            size: 80mm auto;
+            margin: 2mm;
+          }
+          body {
+            width: 80mm;
+            margin: 0 auto;
+            font-size: 13px;
+            color: #000;
+            background: #fff;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          * { color: #000 !important; }
+          ${styles}
+        </style>
+      </head>
+      <body>
+        <div id="print-area">${receiptElement.outerHTML}</div>
+      </body>
+    </html>
+  `;
+  doc.documentElement.innerHTML = html;
+  doc.close();
+
+  iframe.onload = () => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => document.body.removeChild(iframe), 1000);
   };
+};
 
+
+
+  if (!isOpen || !tokenData || !patientData) return null;
 
   return (
-
-    <div className="fixed inset-0 bg-gray-900/50 flex justify-center z-50 p-4 overflow-y-auto">
-
+    <div className="fixed inset-0 bg-gray-900/50 flex justify-center z-50 p-4 overflow-y-auto no-print">
       <div className="flex items-start justify-center min-h-screen w-full">
-
-        <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-
-
+        <div className="bg-white rounded-lg shadow-xl max-w-sm w-full print:w-[80mm] print:m-0 print:rounded-none print:shadow-none">
           {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b no-print">
-            <h2 className="text-xl font-semibold">Token Receipt</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <X className="w-6 h-6" />
+          <div className="flex justify-between items-center p-3 border-b no-print">
+            <h2 className="text-lg font-semibold">Token Receipt</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Receipt Content */}
-        <div id="receipt-content" className="p-1 space-y-1">
-
+          <div
+            ref={receiptRef}
+            id="receipt-content"
+            className="p-4 text-xs text-black font-[monospace] print:p-0 print:m-0 print:w-[80mm]"
+          >
             {/* Clinic Info */}
-            <div className="text-center border-b pb-4">
-              <h3 className="text-lg font-bold text-gray-900">{clinicInfo.name}</h3>
-              <p className="text-sm text-gray-600 flex items-center justify-center mt-1">
-                <MapPin className="w-4 h-4 mr-1" />
-                {clinicInfo.address}
+            <div className="text-center pb-3 border-b border-black">
+              <h3 className="text-lg font-bold uppercase">{clinicInfo.name}</h3>
+              <p className="text-[12px] flex items-center justify-center">
+                <MapPin className="w-3 h-3 mr-1" /> {clinicInfo.address}
               </p>
-              <p className="text-sm text-gray-600 flex items-center justify-center mt-1">
-                <Phone className="w-4 h-4 mr-1" />
-                {clinicInfo.phone}
+              <p className="text-[12px] flex items-center justify-center">
+                <Phone className="w-3 h-3 mr-1" /> {clinicInfo.phone}
               </p>
-              {clinicInfo.website && (
-                <p className="text-sm text-gray-600 mt-1">{clinicInfo.website}</p>
-              )}
+              {clinicInfo.website && <p className="text-[11px]">{clinicInfo.website}</p>}
             </div>
-
-            <hr />
 
             {/* Token Info */}
-            <div className="text-center bg-blue-50 p-4 rounded-lg">
-              <h4 className="text-2xl font-bold text-blue-600 mb-2">{tokenData.tokenNumber}</h4>
-              <p className="text-sm text-gray-600">
-                <Calendar className="w-4 h-4 inline mr-1" />
-                {new Date(tokenData.createdAt).toLocaleDateString()} at {new Date(tokenData.createdAt).toLocaleTimeString()}
+            <div className="text-center py-3 border-b border-black">
+              <h4 className="text-2xl font-black tracking-widest ">{tokenData.tokenNumber}</h4>
+              <p className="text-[12px] font-medium mt-1">
+                <Calendar className="w-3 h-3 inline mr-1" />
+                {new Date(tokenData.createdAt).toLocaleDateString()} {" "}
+                {new Date(tokenData.createdAt).toLocaleTimeString()}
               </p>
             </div>
 
-            <hr />
-
-            {/* Patient Details */}
+            {/* Patient Info */}
             {patientData && (
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 flex items-center">
-                  <User className="w-4 h-4 mr-2" />
-                  Patient Information
+              <div className="py-3 border-b border-black">
+                <h4 className="font-bold text-[13px] mb-2 flex items-center">
+                  <User className="w-3 h-3 mr-1" /> Patient Information
                 </h4>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-gray-600">Name:</span>
-                    <p className="font-medium">{patientData.firstName} {patientData.lastName}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Phone:</span>
-                    <p className="font-medium">{patientData.phone}</p>
-                  </div>
-                  {patientData.age && (
-                    <div>
-                      <span className="text-gray-600">Age:</span>
-                      <p className="font-medium">{patientData.age}</p>
-                    </div>
-                  )}
-                  {patientData.gender && (
-                    <div>
-                      <span className="text-gray-600">Gender:</span>
-                      <p className="font-medium">{patientData.gender}</p>
-                    </div>
-                  )}
+                <div className="grid grid-cols-2 gap-1 text-[12px] leading-tight">
+                  <p><span className="font-semibold">Name:</span> {patientData.firstName} {patientData.lastName}</p>
+                  <p><span className="font-semibold">Phone:</span> {patientData.phone}</p>
+                  {patientData.age && <p><span className="font-semibold">Age:</span> {patientData.age}</p>}
+                  {patientData.gender && <p><span className="font-semibold">Gender:</span> {patientData.gender}</p>}
                 </div>
               </div>
             )}
 
             {/* Appointment Details */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-gray-900 flex items-center">
-                <Clock className="w-4 h-4 mr-2" />
-                Appointment Details
+            <div className="py-3 border-b border-black">
+              <h4 className="font-bold text-[13px] mb-2 flex items-center">
+                <Clock className="w-3 h-3 mr-1" /> Appointment Details
               </h4>
-              <div className="grid grid-cols-1 gap-3 text-sm">
+              <div className="space-y-1 text-[12px] leading-tight">
                 {tokenData.department && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Department:</span>
-                    <span className="font-medium">{tokenData.department}</span>
+                    <span>Department:</span>
+                    <span className="font-semibold">{tokenData.department}</span>
                   </div>
                 )}
                 {tokenData.doctor && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Doctor:</span>
-                    <span className="font-medium">{tokenData.doctor}</span>
+                    <span>Doctor:</span>
+                    <span className="font-semibold">{tokenData.doctor}</span>
                   </div>
                 )}
               </div>
             </div>
 
-
-            <hr />
-
-
-            {/* Default Instructions */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-gray-900 mb-2">Instructions</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Please arrive 15 minutes before your estimated time</li>
+            {/* Instructions */}
+            <div className="pt-3 text-[12px]">
+              <h4 className="font-bold mb-1">Instructions</h4>
+              <ul className="list-none leading-tight">
+                <li>• Arrive 15 mins before your time</li>
                 <li>• Keep this receipt for your records</li>
-                <li>• Contact reception if you need to reschedule</li>
+                <li>• Contact reception for reschedule</li>
               </ul>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-3 text-center border-t border-black pt-2 text-[11px]">
+              <p>Thank you for visiting <b>{clinicInfo.name}</b></p>
+              <p>Powered by Clinic Management System</p>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 p-6 border-t no-print">
+          <div className="flex gap-3 p-3 border-t no-print">
             <button
               onClick={printReceipt}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
             >
-              <Printer className="w-4 h-4" />
-              Print
+              <Printer className="w-4 h-4" /> Print
             </button>
             <button
-              onClick={generateToken}
-              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+              onClick={onClose}
+              className="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2"
             >
               Okay
             </button>
           </div>
         </div>
       </div>
+
+      {/* ✅ Print-only CSS */}
+      <style>{`
+        @media print {
+          body {
+            margin: 0;
+            padding: 0;
+            width: 80mm !important;
+            color: #000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          #receipt-content {
+            width: 80mm !important;
+            margin: 0;
+            font-size: 11px;
+            color: #000 !important;
+          }
+          * {
+            color: #000 !important;
+            background: transparent !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
+
 
 
 export default TokenReceipt;

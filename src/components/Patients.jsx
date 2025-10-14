@@ -7,25 +7,20 @@ import { socket } from "../socket.js"
 import { CalendarDays, User, Calendar, Phone, Mail, MapPin, Hash, Clock, UserPlus } from 'lucide-react';
 
 const Patients = () => {
-  const [patients, setPatients] = useState([]);
-
-  const [showTokenReceipt, setShowTokenReceipt] = useState(false);
+  const [showTokenReceipt, setShowTokenReceipt] = useState({
+    isOpen: false,
+    patientData: {}
+  });
   const [showTokenFile, setShowTokenFile] = useState(false);
 
   const [editedPatientId, setEditedPatientId] = useState("");
   const [todayPatients, setTodayPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
-
+  const [allPatients , setAllPatients] = useState([]);
   const [errors, setErrors] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState([]);
-
-  // const [currentToken, setCurrentToken] = useState(() => {
-  //   // Start token from today's date + sequential number
-  //   const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  //   return `${today}001`;
-  // });
 
   const currentToken = useMemo(() => {
     if (loading) return '';
@@ -48,15 +43,10 @@ const Patients = () => {
     medicalHistory: []
   });
 
-  // get all patient when refresh
-  useEffect(() => {
-    getAllPatient()
-  }, [])
+  useEffect(()=>{
+      todayPatient()
+  } , [])
 
-  // Update current token when patients change
-  useEffect(() => {
-    todayPatient()
-  }, [todayPatients]);
 
   socket.on("status-updated", (data) => {
     setTodayPatients(prevPatients =>
@@ -76,26 +66,17 @@ const Patients = () => {
       const res = await axios.delete('http://localhost:3000/patient/Delete')
       console.log(res);
 
-      setPatients([])
-
     } catch (error) {
       console.error(error.response?.data || error.message)
     }
   }
 
   const runFunction = async () => {
-    console.log("Total Patients", patients);
     console.log("Today Patients", todayPatients);
     console.log("currently Selected Patient", selectedPatient);
     console.log("CcurrentToken", currentToken);
-
-    setTodayPatients(prevPatients =>
-      prevPatients.map(prev => ({
-        ...prev,
-        updatedAt: new Date(prev.updatedAt + 20)
-      })
-      )
-    )
+    console.log("show token data" , showTokenReceipt)
+    setLoading(true)
   }
 
 
@@ -116,26 +97,24 @@ const Patients = () => {
   const getAllPatient = async () => {
 
     try {
-      const allPatient = await axios.get(`http://localhost:3000/patient/`)
-
-      setPatients(allPatient.data)
-
-      console.log(`all patient data `, allPatient.data)
+      const res = await axios.get(`http://localhost:3000/patient/`)
+      setAllPatients(res.data)
+      console.log(res.data);
+      
+      
     } catch (error) {
       console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
-    } finally {
-      setLoading(false)
     }
   }
-
   const getPatientByPhone = async (phone) => {
 
     if (phone.length < 4) return;
+    
 
     try {
       const res = await axios.get(`http://localhost:3000/patient/search?phone=${phone}`)
 
-      setSuggestions(res.data)
+      setSuggestions(res.data)      
 
     } catch (error) {
       console.error(error.response?.data || error.message)
@@ -215,12 +194,12 @@ const Patients = () => {
       try {
         const updatedPatient = await axios.patch(`http://localhost:3000/patient/update/${editedPatientId}`, { ...formData })
 
-        setPatients(prev =>
-          prev.map(patient =>
-            patient._id === editedPatientId ? updatedPatient.data : patient
-          )
+        // setPatients(prev =>
+        //   prev.map(patient =>
+        //     patient._id === editedPatientId ? updatedPatient.data : patient
+        //   )
 
-        );
+        // );
 
       } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
@@ -242,6 +221,9 @@ const Patients = () => {
         const patient = await axios.post('http://localhost:3000/patient/Create', newPatient)
 
         setTodayPatients(prev => [...prev, patient.data]);
+        setShowTokenReceipt({isOpen: true , patientData: patient.data})
+        // setSelectedPatient(patient.data)
+
 
       } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
@@ -308,7 +290,7 @@ const Patients = () => {
               <div className="text-sm text-gray-500">Next Token Number</div>
               {loading ?
                 (
-                  <p>Loading Token...</p>
+                  <div className="p-3 rounded-lg bg-gray-200 animate-pulse space-y-3"></div>
                 ) :
                 (<div className="text-2xl font-bold text-blue-600 flex items-center justify-end">
                   <Hash className="h-5 w-5 mr-1" />
@@ -381,18 +363,19 @@ const Patients = () => {
 
                               if (AlreadyGenerated) {
 
-                                setShowTokenReceipt(false)
+                                setShowTokenReceipt({isOpen: false , patientData: {}})
                                 setErrors({ message: "Token Already Generated!" })
 
                               } else {
-                                setShowTokenReceipt(true);
 
                                 (async () => {
 
                                   try {
-                                    const patientUpdated = await axios.patch(`http://localhost:3000/patient/update/${patient._id}`)
+                                    const patientUpdated = await axios.patch(`http://localhost:3000/patient/update/${patient._id}`
+                                    ,{tokenNo: currentToken})
 
                                     setTodayPatients(prev => [...prev, patientUpdated.data]);
+                                    setShowTokenReceipt({isOpen: true , patientData: patientUpdated.data});
 
                                   } catch (error) {
                                     console.error('❌ Error:', error.response?.data || error.message);
@@ -423,49 +406,6 @@ const Patients = () => {
                       </ul>
                     )}
                   </div>
-
-                  <TokenReceipt
-                    isOpen={showTokenReceipt}
-                    onClose={() => setShowTokenReceipt(false)}
-                    errors={errors}
-                    setErrors={setErrors}
-                    generateToken={() => {
-                      setPatients((prevPatients) => {
-
-                        return prevPatients.map((patient) => {
-                          if (patient._id !== selectedPatient._id) {
-
-                            return { ...patient, tokenNo: currentToken, updatedAt: new Date() };
-                          }
-                          console.log(patient, currentToken);
-                          return patient;
-
-                        });
-                      });
-
-                      setCurrentToken(generateNextToken());
-                      setShowTokenReceipt(false)
-
-                    }}
-                    tokenData={{
-                      tokenNumber: currentToken,
-                      createdAt: new Date(),
-                      status: 'waiting',
-                      estimatedTime: '10:30 AM',
-                      department: 'General Medicine',
-                      doctor: 'Dr. Sarah Wilson',
-                      queuePosition: 3,
-                      notes: 'Follow up appointment',
-                      instructions: 'Please bring previous test results'
-                    }}
-                    patientData={selectedPatient}
-                    clinicInfo={{
-                      name: "City Medical Clinic",
-                      address: "123 Health Street, Medical District",
-                      phone: "+1-555-CLINIC",
-                      website: "www.citymedicalclinic.com"
-                    }}
-                  />
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -685,8 +625,30 @@ const Patients = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-white rounded-lg shadow-sm">
+
+
               {loading ? (
-                <p>Loading patients...</p>
+                // Skeleton placeholder
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="p-3 rounded-lg bg-gray-100 animate-pulse space-y-3"
+                    >
+                      {/* Token and Status line */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="h-4 w-10 bg-gray-300 rounded"></div> {/* token placeholder */}
+                        <div className="h-5 w-16 bg-gray-300 rounded-full"></div> {/* status badge */}
+                      </div>
+
+                      {/* Name line */}
+                      <div className="h-4 w-32 bg-gray-300 rounded"></div>
+
+                      {/* Appointment + time line */}
+                      <div className="h-3 w-28 bg-gray-200 rounded"></div>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 todayPatients.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
@@ -727,14 +689,15 @@ const Patients = () => {
                 )
               )}
               <TokenReceipt
-                isOpen={showTokenReceipt}
+                isOpen={showTokenReceipt.isOpen}
                 onClose={() => setShowTokenReceipt(false)}
                 errors={errors}
                 setErrors={setErrors}
+                patientData={showTokenReceipt.patientData}
                 tokenData={{
-                  tokenNumber: selectedPatient?.tokenNo || "",
-                  createdAt: selectedPatient?.updatedAt || "",
-                  status: selectedPatient?.updatedAt || "",
+                  tokenNumber: showTokenReceipt.patientData?.tokenNo || "",
+                  createdAt: showTokenReceipt.patientData?.updatedAt || "",
+                  status: showTokenReceipt.patientData?.updatedAt || "",
                   estimatedTime: '10:30 AM',
                   department: 'General Medicine',
                   doctor: 'Dr. Sarah Wilson',
