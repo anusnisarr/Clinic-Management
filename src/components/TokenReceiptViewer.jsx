@@ -1,6 +1,5 @@
 import React, { useEffect , useRef } from 'react';
 import { X, Printer, Download, User, Clock, Hash, Calendar, Phone, MapPin } from 'lucide-react';
-
 const TokenReceipt = ({
   isOpen,
   onClose,
@@ -24,10 +23,112 @@ const TokenReceipt = ({
     }
   }, [errors]);
 
+// const printReceipt = () => {
+//   const receiptElement = document.getElementById("receipt-content");
+//   if (!receiptElement) return;
+
+//   const iframe = document.createElement("iframe");
+//   iframe.style.position = "fixed";
+//   iframe.style.right = "0";
+//   iframe.style.bottom = "0";
+//   iframe.style.width = "0";
+//   iframe.style.height = "0";
+//   iframe.style.border = "0";
+//   document.body.appendChild(iframe);
+
+//   const doc = iframe.contentWindow.document;
+
+//   // ✅ Copy your Tailwind styles from the page
+//   const styles = Array.from(document.styleSheets)
+//     .map((sheet) => {
+//       try {
+//         return Array.from(sheet.cssRules)
+//           .map((rule) => rule.cssText)
+//           .join("\n");
+//       } catch (e) {
+//         return "";
+//       }
+//     })
+//     .join("\n");
+
+//   doc.open();
+//   // doc.write(`
+//   //   <html>
+//   //     <head>
+//   //       <title>Token Receipt</title>
+//   //       <style>
+//   //         @page {
+//   //           size: 80mm auto;
+//   //           margin: 2mm;
+//   //         }
+
+//   //         body {
+//   //           width: 80mm;
+//   //           margin: 0 auto;
+//   //           color: #000;
+//   //           background: #fff;
+//   //           font-size: 13px;
+//   //           -webkit-print-color-adjust: exact !important;
+//   //           print-color-adjust: exact !important;
+//   //         }
+
+//   //         * {
+//   //           color: #000 !important;
+//   //         }
+
+//   //         ${styles}
+//   //       </style>
+//   //     </head>
+//   //     <body>
+//   //       <div id="print-area">${receiptElement.outerHTML}</div>
+//   //     </body>
+//   //   </html>
+//   // `);
+//  const html = `
+//     <html>
+//       <head>
+//         <title>Token Receipt</title>
+//         <style>
+//           @page {
+//             size: 80mm auto;
+//             margin: 2mm;
+//           }
+//           body {
+//             width: 80mm;
+//             margin: 0 auto;
+//             font-size: 13px;
+//             color: #000;
+//             background: #fff;
+//             -webkit-print-color-adjust: exact !important;
+//             print-color-adjust: exact !important;
+//           }
+//           * { color: #000 !important; }
+//           ${styles}
+//         </style>
+//       </head>
+//       <body>
+//         <div id="print-area">${receiptElement.outerHTML}</div>
+//       </body>
+//     </html>
+//   `;
+//   doc.documentElement.innerHTML = html;
+//   doc.close();
+
+//   iframe.onload = () => {
+//     iframe.contentWindow.focus();
+//     iframe.contentWindow.print();
+//     setTimeout(() => document.body.removeChild(iframe), 1000);
+//   };
+// };
+
 const printReceipt = () => {
   const receiptElement = document.getElementById("receipt-content");
-  if (!receiptElement) return;
+  if (!receiptElement) {
+    console.error("❌ receipt-content element not found");
+    return;
+  }
 
+  // Create hidden iframe
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
   iframe.style.right = "0";
@@ -37,55 +138,24 @@ const printReceipt = () => {
   iframe.style.border = "0";
   document.body.appendChild(iframe);
 
-  const doc = iframe.contentWindow.document;
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
-  // ✅ Copy your Tailwind styles from the page
+  // Collect Tailwind or inline styles (CORS-safe)
   const styles = Array.from(document.styleSheets)
     .map((sheet) => {
       try {
         return Array.from(sheet.cssRules)
           .map((rule) => rule.cssText)
           .join("\n");
-      } catch (e) {
+      } catch {
         return "";
       }
     })
     .join("\n");
 
-  doc.open();
-  // doc.write(`
-  //   <html>
-  //     <head>
-  //       <title>Token Receipt</title>
-  //       <style>
-  //         @page {
-  //           size: 80mm auto;
-  //           margin: 2mm;
-  //         }
-
-  //         body {
-  //           width: 80mm;
-  //           margin: 0 auto;
-  //           color: #000;
-  //           background: #fff;
-  //           font-size: 13px;
-  //           -webkit-print-color-adjust: exact !important;
-  //           print-color-adjust: exact !important;
-  //         }
-
-  //         * {
-  //           color: #000 !important;
-  //         }
-
-  //         ${styles}
-  //       </style>
-  //     </head>
-  //     <body>
-  //       <div id="print-area">${receiptElement.outerHTML}</div>
-  //     </body>
-  //   </html>
-  // `);
- const html = `
+  // Full HTML for the receipt
+  const html = `
+    <!DOCTYPE html>
     <html>
       <head>
         <title>Token Receipt</title>
@@ -104,6 +174,7 @@ const printReceipt = () => {
             print-color-adjust: exact !important;
           }
           * { color: #000 !important; }
+          * { font-weight: 800 !important; }
           ${styles}
         </style>
       </head>
@@ -112,17 +183,23 @@ const printReceipt = () => {
       </body>
     </html>
   `;
-  doc.documentElement.innerHTML = html;
-  doc.close();
 
-  iframe.onload = () => {
+  const parser = new DOMParser();
+  const parsedDoc = parser.parseFromString(html, "text/html");
+
+  iframeDoc.replaceChild(
+    iframeDoc.importNode(parsedDoc.documentElement, true),
+    iframeDoc.documentElement
+  );
+
+  requestAnimationFrame(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
-    setTimeout(() => document.body.removeChild(iframe), 1000);
-  };
+
+    // Cleanup
+    setTimeout(() => iframe.remove(), 1000);
+  });
 };
-
-
 
   if (!isOpen || !tokenData || !patientData) return null;
 

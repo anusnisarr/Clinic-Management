@@ -12,11 +12,10 @@ const Patients = () => {
     patientData: {}
   });
   const [showTokenFile, setShowTokenFile] = useState(false);
-
   const [editedPatientId, setEditedPatientId] = useState("");
   const [todayPatients, setTodayPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [allPatients , setAllPatients] = useState([]);
+  const [allPatients, setAllPatients] = useState([]);
   const [errors, setErrors] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,7 +27,7 @@ const Patients = () => {
   }, [todayPatients, loading]);
 
 
-  const [formData, setFormData] = useState({
+  const [patientData, setPatientData] = useState({
     firstName: '',
     lastName: '',
     phone: '',
@@ -43,9 +42,10 @@ const Patients = () => {
     medicalHistory: []
   });
 
-  useEffect(()=>{
-      todayPatient()
-  } , [])
+  useEffect(() => {
+    todayPatient()
+    deleteAll()
+  }, [])
 
 
   socket.on("status-updated", (data) => {
@@ -64,7 +64,6 @@ const Patients = () => {
   const deleteAll = async () => {
     try {
       const res = await axios.delete('http://localhost:3000/patient/Delete')
-      console.log(res);
 
     } catch (error) {
       console.error(error.response?.data || error.message)
@@ -75,10 +74,9 @@ const Patients = () => {
     console.log("Today Patients", todayPatients);
     console.log("currently Selected Patient", selectedPatient);
     console.log("CcurrentToken", currentToken);
-    console.log("show token data" , showTokenReceipt)
+    console.log("show token data", showTokenReceipt)
     setLoading(true)
   }
-
 
   const todayPatient = async () => {
 
@@ -100,8 +98,8 @@ const Patients = () => {
       const res = await axios.get(`http://localhost:3000/patient/`)
       setAllPatients(res.data)
       console.log(res.data);
-      
-      
+
+
     } catch (error) {
       console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
     }
@@ -109,12 +107,12 @@ const Patients = () => {
   const getPatientByPhone = async (phone) => {
 
     if (phone.length < 4) return;
-    
+
 
     try {
       const res = await axios.get(`http://localhost:3000/patient/search?phone=${phone}`)
 
-      setSuggestions(res.data)      
+      setSuggestions(res.data)
 
     } catch (error) {
       console.error(error.response?.data || error.message)
@@ -143,7 +141,7 @@ const Patients = () => {
     if (name === "phone" && value === "") setSuggestions([]);
 
 
-    setFormData(prev => ({
+    setPatientData(prev => ({
       ...prev,
       [name]: value
     }));
@@ -161,19 +159,19 @@ const Patients = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    // if (!formData.age) newErrors.age = 'Age is required';
-    // if (!formData.gender) newErrors.gender = 'Gender is required';
+    if (!patientData.firstName.trim()) newErrors.firstName = 'First name is required';
+    if (!patientData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    if (!patientData.phone.trim()) newErrors.phone = 'Phone number is required';
+    // if (!patientData.age) newErrors.age = 'Age is required';
+    // if (!patientData.gender) newErrors.gender = 'Gender is required';
 
     // Phone validation
-    if (formData.phone && !/^\d{11,14}$/.test(formData.phone.replace(/\D/g, ''))) {
+    if (patientData.phone && !/^\d{11,14}$/.test(patientData.phone.replace(/\D/g, ''))) {
       newErrors.phone = 'Please enter a valid phone number';
     }
 
     // Email validation
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+    if (patientData.email && !/\S+@\S+\.\S+/.test(patientData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
@@ -192,22 +190,14 @@ const Patients = () => {
     if (editedPatientId) {
 
       try {
-        const updatedPatient = await axios.patch(`http://localhost:3000/patient/update/${editedPatientId}`, { ...formData })
-
-        // setPatients(prev =>
-        //   prev.map(patient =>
-        //     patient._id === editedPatientId ? updatedPatient.data : patient
-        //   )
-
-        // );
+        const updatedPatient = await axios.patch(`http://localhost:3000/patient/update/${editedPatientId}`, { ...patientData })
 
       } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
       }
 
     } else {
-      const newPatient = {
-        ...formData,
+      const visitDetails = {
         tokenNo: currentToken,
         registrationTime: new Date().toLocaleTimeString(`en-US`, {
           timeStyle: 'short',
@@ -218,10 +208,13 @@ const Patients = () => {
       };
 
       try {
-        const patient = await axios.post('http://localhost:3000/patient/Create', newPatient)
-
+        
+        const patient = await axios.post('http://localhost:3000/patient/Create', {PatientInfo: {...patientData} , visitDetails})
+       
+        console.log("patient" , patient);
+        
         setTodayPatients(prev => [...prev, patient.data]);
-        setShowTokenReceipt({isOpen: true , patientData: patient.data})
+        setShowTokenReceipt({ isOpen: true, patientData: patient.data })
         // setSelectedPatient(patient.data)
 
 
@@ -232,7 +225,7 @@ const Patients = () => {
     }
 
     // Reset form
-    setFormData({
+    setPatientData({
       firstName: '',
       lastName: '',
       phone: '',
@@ -257,7 +250,7 @@ const Patients = () => {
   const updatePatientInfo = (patient) => {
     setEditedPatientId(patient._id)
 
-    setFormData({
+    setPatientData({
       firstName: patient.firstName || "",
       lastName: patient.lastName || "",
       phone: patient.phone || "",
@@ -307,7 +300,7 @@ const Patients = () => {
         <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
           onClick={runFunction}>Run Function</button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-screen">
           {/* Registration Form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -336,7 +329,7 @@ const Patients = () => {
                       <input
                         type="tel"
                         name="phone"
-                        value={formData.phone}
+                        value={patientData.phone}
                         onChange={handleInputChange}
                         className={`appearance-none pl-10 w-full p-3 border focus:outline-none rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-300'
                           }`}
@@ -363,7 +356,7 @@ const Patients = () => {
 
                               if (AlreadyGenerated) {
 
-                                setShowTokenReceipt({isOpen: false , patientData: {}})
+                                setShowTokenReceipt({ isOpen: false, patientData: {} })
                                 setErrors({ message: "Token Already Generated!" })
 
                               } else {
@@ -372,10 +365,10 @@ const Patients = () => {
 
                                   try {
                                     const patientUpdated = await axios.patch(`http://localhost:3000/patient/update/${patient._id}`
-                                    ,{tokenNo: currentToken})
+                                      , { tokenNo: currentToken })
 
                                     setTodayPatients(prev => [...prev, patientUpdated.data]);
-                                    setShowTokenReceipt({isOpen: true , patientData: patientUpdated.data});
+                                    setShowTokenReceipt({ isOpen: true, patientData: patientUpdated.data });
 
                                   } catch (error) {
                                     console.error('❌ Error:', error.response?.data || error.message);
@@ -416,7 +409,7 @@ const Patients = () => {
                       <input
                         type="email"
                         name="email"
-                        value={formData.email}
+                        value={patientData.email}
                         onChange={handleInputChange}
                         className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-300'
                           }`}
@@ -437,7 +430,7 @@ const Patients = () => {
                       <input
                         type="text"
                         name="firstName"
-                        value={formData.firstName}
+                        value={patientData.firstName}
                         onChange={handleInputChange}
                         className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.firstName ? 'border-red-500' : 'border-gray-300'
                           }`}
@@ -456,7 +449,7 @@ const Patients = () => {
                       <input
                         type="text"
                         name="lastName"
-                        value={formData.lastName}
+                        value={patientData.lastName}
                         onChange={handleInputChange}
                         className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.lastName ? 'border-red-500' : 'border-gray-300'
                           }`}
@@ -475,7 +468,7 @@ const Patients = () => {
                     <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <textarea
                       name="address"
-                      value={formData.address}
+                      value={patientData.address}
                       onChange={handleInputChange}
                       rows="2"
                       className="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -495,7 +488,7 @@ const Patients = () => {
                         type="number"
                         name="age"
                         placeholder="Enter Age"
-                        value={formData.age}
+                        value={patientData.age}
                         onChange={handleInputChange}
                         className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.age ? 'border-red-500' : 'border-gray-300'
                           }`}
@@ -510,7 +503,7 @@ const Patients = () => {
                     </label>
                     <select
                       name="gender"
-                      value={formData.gender}
+                      value={patientData.gender}
                       onChange={handleInputChange}
                       className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.gender ? 'border-red-500' : 'border-gray-300'
                         }`}
@@ -538,7 +531,7 @@ const Patients = () => {
                   <input
                     type="text"
                     name="emergencyContact"
-                    value={formData.emergencyContact}
+                    value={patientData.emergencyContact}
                     onChange={handleInputChange}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Emergency contact name"
@@ -552,7 +545,7 @@ const Patients = () => {
                   <input
                     type="tel"
                     name="emergencyPhone"
-                    value={formData.emergencyPhone}
+                    value={patientData.emergencyPhone}
                     onChange={handleInputChange}
                     className="w-full p-3 border border-gray-300 focus:outline-none rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Emergency contact phone"
@@ -572,7 +565,7 @@ const Patients = () => {
                   </label>
                   <select
                     name="appointmentType"
-                    value={formData.appointmentType}
+                    value={patientData.appointmentType}
                     onChange={handleInputChange}
                     className="w-full p-3 border border-gray-300 focus:outline-none rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -590,7 +583,7 @@ const Patients = () => {
                   </label>
                   <select
                     name="priority"
-                    value={formData.priority}
+                    value={patientData.priority}
                     onChange={handleInputChange}
                     className="w-full p-3 border focus:outline-none border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -615,17 +608,16 @@ const Patients = () => {
           </div>
 
           {/* Today's Patients Queue */}
-          <div className="flex flex-col h-[calc(100vh-200px)]">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Today's Queue</h2>
-              <div className="text-sm text-gray-500 flex items-center">
-                <Clock className="h-4 w-4 mr-1" />
-                {todayPatients?.length} patients
-              </div>
-            </div>
-
             <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-white rounded-lg shadow-sm">
-
+              <div className='max-h-[500px]s'>
+                <div className="flex items-center justify-between mb-4 ">
+                  <h2 className="text-lg font-semibold text-gray-900">Today's Queue</h2>
+                  <div className="text-sm text-gray-500 flex items-center">
+                    <Clock className="h-4 w-4 mr-1" />
+                    {todayPatients?.length} patients
+                  </div>
+                </div>
+              </div>
 
               {loading ? (
                 // Skeleton placeholder
@@ -659,8 +651,7 @@ const Patients = () => {
                   todayPatients?.slice().reverse().map((patient) => (
                     <div key={patient._id}
                       onClick={() => {
-                        setSelectedPatient(patient)
-                        setShowTokenReceipt(true)
+                        setShowTokenReceipt({ isOpen: true, patientData: patient })
                       }}
                       className={`p-3 border rounded-lg ${patient.priority === 'emergency' ? 'border-red-200 bg-red-50' :
                         patient?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
@@ -708,7 +699,6 @@ const Patients = () => {
               />
               {/* <PatientFileModal isOpen={showTokenReceipt} patient={selectedPatient} onClose={() => { setSelectedPatient(null), setShowTokenReceipt(false) }} /> */}
             </div>
-          </div>
         </div>
       </div>
     </div>

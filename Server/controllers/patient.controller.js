@@ -1,4 +1,5 @@
 import Patient from "../models/patient.models.js"
+import PatientVisit from "../models/visits.modals.js";
 
 export const getTodayPatient = async (req, res) => {
 
@@ -44,7 +45,6 @@ export const searchPatientByPhone = async (req, res) => {
         }).limit(5);
 
         res.status(200).json(matches);
-        console.log(matches);
         
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -65,10 +65,15 @@ export const getAllPatient = async (req, res) => {
 }
 
 export const registerPatient = async (req, res) => {
+    const {PatientInfo , visitDetails} = req.body    
+    
     try {
-        const patient = await Patient.create(req.body)
+        const patient = await Patient.create(PatientInfo)
+        const visit = await PatientVisit.create({...visitDetails , patientId: patient._id})
 
-        res.status(201).json(patient);
+        const patientWithVisit = await visit.populate("patientId")        
+                
+        res.status(201).json(patientWithVisit);        
 
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -117,9 +122,6 @@ export const deleteAllPatient = async (req, res) => {
         const deleteAllPatients = await Patient.deleteMany({});
 
         res.status(201).json(deleteAllPatients);
-
-        console.log(deleteAllPatient);
-
 
     } catch (error) {
         res.status(400).json({ error: error.message });
