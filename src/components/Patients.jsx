@@ -44,7 +44,6 @@ const Patients = () => {
 
   useEffect(() => {
     todayPatient()
-    deleteAll()
   }, [])
 
 
@@ -211,10 +210,15 @@ const Patients = () => {
         
         const patient = await axios.post('http://localhost:3000/patient/Create', {PatientInfo: {...patientData} , visitDetails})
        
-        console.log("patient" , patient);
+        const PatientVisit = {...patient.data , ...patient.data.patientId}
+        delete PatientVisit.patientId
+
+        console.log(PatientVisit);
         
-        setTodayPatients(prev => [...prev, patient.data]);
-        setShowTokenReceipt({ isOpen: true, patientData: patient.data })
+    
+        
+        setTodayPatients(prev => [...prev, PatientVisit]);
+        setShowTokenReceipt({ isOpen: true, patientData: PatientVisit })
         // setSelectedPatient(patient.data)
 
 
