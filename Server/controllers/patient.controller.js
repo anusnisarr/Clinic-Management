@@ -1,7 +1,7 @@
 import Patient from "../models/patient.models.js"
 import PatientVisit from "../models/visits.modals.js";
 
-export const getTodayPatient = async (req, res) => {
+export const getTodayVisit = async (req, res) => {
 
     try {
 
@@ -13,11 +13,11 @@ export const getTodayPatient = async (req, res) => {
         // End of today
         const endOfDay = new Date(new Date().setHours(23, 59, 59, 999));
 
-        const GetTodayPatients = await Patient.find({
+        const getTodayVisits = await PatientVisit.find({
         updatedAt: { $gte: startOfDay, $lte: endOfDay }
-        });
+        }).populate("patient");
 
-        return res.status(200).json(GetTodayPatients);
+        return res.status(200).json(getTodayVisits);
         
 
     } catch (err) {
@@ -52,7 +52,7 @@ export const searchPatientByPhone = async (req, res) => {
 
 }
 
-export const getAllPatient = async (req, res) => {
+export const getAllVisits = async (req, res) => {
     try {
         const allPatient = await Patient.find().sort({ createdAt: -1 });
 
@@ -64,14 +64,14 @@ export const getAllPatient = async (req, res) => {
 
 }
 
-export const registerPatient = async (req, res) => {
+export const registerPatientAndVisit = async (req, res) => {
     const {PatientInfo , visitDetails} = req.body    
     
     try {
         const patient = await Patient.create(PatientInfo)
-        const visit = await PatientVisit.create({...visitDetails , patientId: patient._id})
+        const visit = await PatientVisit.create({...visitDetails , patient: patient._id})
 
-        const patientWithVisit = await visit.populate("patientId")        
+        const patientWithVisit = await visit.populate("patient")        
                 
         res.status(201).json(patientWithVisit);        
 
@@ -117,11 +117,12 @@ export const updateMedicalHistory = async (req, res) => {
 
 }
 
-export const deleteAllPatient = async (req, res) => {
+export const deleteAllVisits = async (req, res) => {
     try {
         const deleteAllPatients = await Patient.deleteMany({});
+        const deleteAllVisits = await PatientVisit.deleteMany({});
 
-        res.status(201).json(deleteAllPatients);
+        res.status(201).json({deleteAllPatients ,deleteAllVisits });
 
     } catch (error) {
         res.status(400).json({ error: error.message });

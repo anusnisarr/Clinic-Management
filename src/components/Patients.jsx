@@ -5,15 +5,16 @@ import TokenReceipt from './TokenReceiptViewer';
 import axios from 'axios';
 import { socket } from "../socket.js"
 import { CalendarDays, User, Calendar, Phone, Mail, MapPin, Hash, Clock, UserPlus } from 'lucide-react';
+const env = import.meta.env
 
 const Patients = () => {
   const [showTokenReceipt, setShowTokenReceipt] = useState({
     isOpen: false,
-    patientData: {}
+    receiptData: {}
   });
   const [showTokenFile, setShowTokenFile] = useState(false);
   const [editedPatientId, setEditedPatientId] = useState("");
-  const [todayPatients, setTodayPatients] = useState([]);
+  const [todayVisits, setTodayVisits] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [allPatients, setAllPatients] = useState([]);
   const [errors, setErrors] = useState({});
@@ -23,8 +24,8 @@ const Patients = () => {
 
   const currentToken = useMemo(() => {
     if (loading) return '';
-    return (todayPatients.length + 1).toString().padStart(3, '0');
-  }, [todayPatients, loading]);
+    return (todayVisits.length + 1).toString().padStart(3, '0');
+  }, [todayVisits, loading]);
 
 
   const [patientData, setPatientData] = useState({
@@ -44,11 +45,12 @@ const Patients = () => {
 
   useEffect(() => {
     todayPatient()
+    // deleteAll()
   }, [])
 
 
   socket.on("status-updated", (data) => {
-    setTodayPatients(prevPatients =>
+    setTodayVisits(prevPatients =>
       prevPatients.map(patient => {
 
         if (patient._id === data.patientId) {
@@ -62,7 +64,7 @@ const Patients = () => {
 
   const deleteAll = async () => {
     try {
-      const res = await axios.delete('http://localhost:3000/patient/Delete')
+      const res = await axios.delete(`${env.VITE_BASE_PATH}/visit/Delete`)
 
     } catch (error) {
       console.error(error.response?.data || error.message)
@@ -70,7 +72,7 @@ const Patients = () => {
   }
 
   const runFunction = async () => {
-    console.log("Today Patients", todayPatients);
+    console.log("Today Patients", todayVisits);
     console.log("currently Selected Patient", selectedPatient);
     console.log("CcurrentToken", currentToken);
     console.log("show token data", showTokenReceipt)
@@ -80,9 +82,9 @@ const Patients = () => {
   const todayPatient = async () => {
 
     try {
-      const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
+      const todayPatient = await axios.get(`${env.VITE_BASE_PATH}/visit/todayPatient`)
 
-      setTodayPatients(todayPatient.data)
+      setTodayVisits(todayPatient.data)
 
     } catch (error) {
       console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
@@ -94,7 +96,7 @@ const Patients = () => {
   const getAllPatient = async () => {
 
     try {
-      const res = await axios.get(`http://localhost:3000/patient/`)
+      const res = await axios.get(`${env.VITE_BASE_PATH}/visit/`)
       setAllPatients(res.data)
       console.log(res.data);
 
@@ -103,13 +105,14 @@ const Patients = () => {
       console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
     }
   }
+  
   const getPatientByPhone = async (phone) => {
 
     if (phone.length < 4) return;
 
 
     try {
-      const res = await axios.get(`http://localhost:3000/patient/search?phone=${phone}`)
+      const res = await axios.get(`${env.VITE_BASE_PATH}/patient/search?phone=${phone}`)
 
       setSuggestions(res.data)
 
@@ -125,7 +128,7 @@ const Patients = () => {
 
   // Generate next token number
   const generateNextToken = () => {
-    const nextNumber = (todayPatients.length + 1).toString().padStart(3, '0');
+    const nextNumber = (todayVisits.length + 1).toString().padStart(3, '0');
     return nextNumber;
   };
 
@@ -189,7 +192,7 @@ const Patients = () => {
     if (editedPatientId) {
 
       try {
-        const updatedPatient = await axios.patch(`http://localhost:3000/patient/update/${editedPatientId}`, { ...patientData })
+        const updatedPatient = await axios.patch(`${env.VITE_BASE_PATH}/patient/update/${editedPatientId}`, { ...patientData })
 
       } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
@@ -208,17 +211,12 @@ const Patients = () => {
 
       try {
         
-        const patient = await axios.post('http://localhost:3000/patient/Create', {PatientInfo: {...patientData} , visitDetails})
+        const patient = await axios.post(`${env.VITE_BASE_PATH}/visit/registerPatientAndVisit`, {PatientInfo: {...patientData} , visitDetails})
        
-        const PatientVisit = {...patient.data , ...patient.data.patientId}
-        delete PatientVisit.patientId
-
-        console.log(PatientVisit);
+        const PatientVisit = patient.data
         
-    
-        
-        setTodayPatients(prev => [...prev, PatientVisit]);
-        setShowTokenReceipt({ isOpen: true, patientData: PatientVisit })
+        setTodayVisits(prev => [...prev, PatientVisit]);
+        setShowTokenReceipt({ isOpen: true, receiptData: PatientVisit })
         // setSelectedPatient(patient.data)
 
 
@@ -356,11 +354,11 @@ const Patients = () => {
                             className="flex justify-between items-center  p-2 hover:bg-gray-100 cursor-pointer text-sm"
                             onClick={(e) => {
 
-                              const AlreadyGenerated = todayPatients.some((todayPatient) => todayPatient._id === patient._id);
+                              const AlreadyGenerated = todayVisits.some((todayPatient) => todayPatient.patient._id === patient._id);
 
                               if (AlreadyGenerated) {
 
-                                setShowTokenReceipt({ isOpen: false, patientData: {} })
+                                setShowTokenReceipt({ isOpen: false, receiptData: {} })
                                 setErrors({ message: "Token Already Generated!" })
 
                               } else {
@@ -368,11 +366,11 @@ const Patients = () => {
                                 (async () => {
 
                                   try {
-                                    const patientUpdated = await axios.patch(`http://localhost:3000/patient/update/${patient._id}`
+                                    const patientUpdated = await axios.patch(`${env.VITE_BASE_PATH}/visit/update/${patient._id}`
                                       , { tokenNo: currentToken })
 
-                                    setTodayPatients(prev => [...prev, patientUpdated.data]);
-                                    setShowTokenReceipt({ isOpen: true, patientData: patientUpdated.data });
+                                    setTodayVisits(prev => [...prev, patientUpdated.data]);
+                                    setShowTokenReceipt({ isOpen: true, receiptData: patientUpdated.data });
 
                                   } catch (error) {
                                     console.error('❌ Error:', error.response?.data || error.message);
@@ -618,7 +616,7 @@ const Patients = () => {
                   <h2 className="text-lg font-semibold text-gray-900">Today's Queue</h2>
                   <div className="text-sm text-gray-500 flex items-center">
                     <Clock className="h-4 w-4 mr-1" />
-                    {todayPatients?.length} patients
+                    {todayVisits.patient?.length} patients
                   </div>
                 </div>
               </div>
@@ -646,37 +644,37 @@ const Patients = () => {
                   ))}
                 </div>
               ) : (
-                todayPatients.length === 0 ? (
+                todayVisits.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                     <p>No patients registered today</p>
                   </div>
                 ) : (
-                  todayPatients?.slice().reverse().map((patient) => (
-                    <div key={patient._id}
+                  todayVisits?.slice().reverse().map((visit) => (
+                    <div key={visit._id}
                       onClick={() => {
-                        setShowTokenReceipt({ isOpen: true, patientData: patient })
+                        setShowTokenReceipt({ isOpen: true, receiptData: visit })
                       }}
-                      className={`p-3 border rounded-lg ${patient.priority === 'emergency' ? 'border-red-200 bg-red-50' :
-                        patient?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
+                      className={`p-3 border rounded-lg ${visit.priority === 'emergency' ? 'border-red-200 bg-red-50' :
+                        visit?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
                           'border-gray-200 bg-gray-50'
                         }`}>
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-medium text-gray-900">
-                          #{patient?.tokenNo.slice(-3)}
+                          #{visit?.tokenNo.slice(-3)}
                         </div>
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${patient.priority === 'emergency' ? 'bg-red-100 text-red-800' :
-                          patient?.priority === 'urgent' ? 'bg-yellow-100 text-yellow-800' :
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${visit.priority === 'emergency' ? 'bg-red-100 text-red-800' :
+                          visit?.priority === 'urgent' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-green-100 text-green-800'
                           }`}>
-                          {patient?.status}
+                          {visit?.status}
                         </div>
                       </div>
                       <div className="text-sm text-gray-700">
-                        {patient?.firstName} {patient.lastName}
+                        {visit.patient?.firstName} {visit.patient?.lastName}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {patient?.appointmentType} • {patient.registrationTime}
+                        {visit?.appointmentType} • {visit?.registrationTime}
                       </div>
 
                     </div>
@@ -688,18 +686,16 @@ const Patients = () => {
                 onClose={() => setShowTokenReceipt(false)}
                 errors={errors}
                 setErrors={setErrors}
-                patientData={showTokenReceipt.patientData}
-                tokenData={{
-                  tokenNumber: showTokenReceipt.patientData?.tokenNo || "",
-                  createdAt: showTokenReceipt.patientData?.updatedAt || "",
-                  status: showTokenReceipt.patientData?.updatedAt || "",
-                  estimatedTime: '10:30 AM',
-                  department: 'General Medicine',
-                  doctor: 'Dr. Sarah Wilson',
-                  queuePosition: selectedPatient?.tokenNo || "",
-                  notes: 'Follow up appointment',
-                  instructions: 'Please bring previous test results'
-                }}
+                receiptData={
+                  {
+                  ...showTokenReceipt.receiptData , 
+                  estimatedTime: '',
+                  department: '',
+                  doctor: '',
+                  notes: '',
+                  instructions: ''
+                  }
+                }
               />
               {/* <PatientFileModal isOpen={showTokenReceipt} patient={selectedPatient} onClose={() => { setSelectedPatient(null), setShowTokenReceipt(false) }} /> */}
             </div>

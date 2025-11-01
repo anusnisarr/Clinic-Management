@@ -5,16 +5,18 @@ const TokenReceipt = ({
   onClose,
   errors,
   setErrors,
-  tokenData,
-  patientData,
+  receiptData,
   clinicInfo = {
     name: "City Medical Clinic",
     address: "123 Health Street, Medical District",
     phone: "+1-555-CLINIC",
     website: "www.citymedicalclinic.com"
   }
+
+  
 }) => {
   const receiptRef = useRef();
+    console.log(receiptData);
 
   useEffect(() => {
     if (errors?.message) {
@@ -201,7 +203,7 @@ const printReceipt = () => {
   });
 };
 
-  if (!isOpen || !tokenData || !patientData) return null;
+  if (!isOpen  || !receiptData) return null;
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 flex justify-center z-50 p-4 overflow-y-auto no-print">
@@ -235,25 +237,25 @@ const printReceipt = () => {
 
             {/* Token Info */}
             <div className="text-center py-3 border-b border-black">
-              <h4 className="text-2xl font-black tracking-widest ">{tokenData.tokenNumber}</h4>
+              <h4 className="text-2xl font-black tracking-widest ">{receiptData.tokenNo}</h4>
               <p className="text-[12px] font-medium mt-1">
                 <Calendar className="w-3 h-3 inline mr-1" />
-                {new Date(tokenData.createdAt).toLocaleDateString()} {" "}
-                {new Date(tokenData.createdAt).toLocaleTimeString()}
+                {new Date(receiptData.createdAt).toLocaleDateString()} {" "}
+                {new Date(receiptData.createdAt).toLocaleTimeString()}
               </p>
             </div>
 
             {/* Patient Info */}
-            {patientData && (
+            {receiptData.patient && (
               <div className="py-3 border-b border-black">
                 <h4 className="font-bold text-[13px] mb-2 flex items-center">
                   <User className="w-3 h-3 mr-1" /> Patient Information
                 </h4>
                 <div className="grid grid-cols-2 gap-1 text-[12px] leading-tight">
-                  <p><span className="font-semibold">Name:</span> {patientData.firstName} {patientData.lastName}</p>
-                  <p><span className="font-semibold">Phone:</span> {patientData.phone}</p>
-                  {patientData.age && <p><span className="font-semibold">Age:</span> {patientData.age}</p>}
-                  {patientData.gender && <p><span className="font-semibold">Gender:</span> {patientData.gender}</p>}
+                  <p><span className="font-semibold">Name:</span> {receiptData.patient.firstName} {receiptData.patient.lastName}</p>
+                  <p><span className="font-semibold">Phone:</span> {receiptData.patient.phone}</p>
+                  {receiptData.patient.age && <p><span className="font-semibold">Age:</span> {receiptData.patient.age}</p>}
+                  {receiptData.patient.gender && <p><span className="font-semibold">Gender:</span> {receiptData.patient.gender}</p>}
                 </div>
               </div>
             )}
@@ -264,16 +266,16 @@ const printReceipt = () => {
                 <Clock className="w-3 h-3 mr-1" /> Appointment Details
               </h4>
               <div className="space-y-1 text-[12px] leading-tight">
-                {tokenData.department && (
+                {receiptData.department && (
                   <div className="flex justify-between">
                     <span>Department:</span>
-                    <span className="font-semibold">{tokenData.department}</span>
+                    <span className="font-semibold">{receiptData.department}</span>
                   </div>
                 )}
-                {tokenData.doctor && (
+                {receiptData.doctor && (
                   <div className="flex justify-between">
                     <span>Doctor:</span>
-                    <span className="font-semibold">{tokenData.doctor}</span>
+                    <span className="font-semibold">{receiptData.doctor}</span>
                   </div>
                 )}
               </div>

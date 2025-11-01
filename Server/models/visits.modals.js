@@ -18,7 +18,7 @@ const medicalHistorySchema = mongoose.Schema({
 })
 
 const patientVisitSchema = mongoose.Schema({
-    patientId : {type: mongoose.Schema.Types.ObjectId, ref: "Patient"},
+    patient : {type: mongoose.Schema.Types.ObjectId, ref: "Patient"},
     appointmentType : {type: String},
     tokenNo: {type: String},
     priority : {type: String},
