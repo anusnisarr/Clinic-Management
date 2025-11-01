@@ -44,7 +44,7 @@ const Patients = () => {
   });
 
   useEffect(() => {
-    todayPatient()
+    getTodayVisits()
     // deleteAll()
   }, [])
 
@@ -79,15 +79,15 @@ const Patients = () => {
     setLoading(true)
   }
 
-  const todayPatient = async () => {
+  const getTodayVisits = async () => {
 
     try {
-      const todayPatient = await axios.get(`${env.VITE_BASE_PATH}/visit/todayPatient`)
+      const todayVisits = await axios.get(`${env.VITE_BASE_PATH}/visit/todayVisits`)
 
-      setTodayVisits(todayPatient.data)
+      setTodayVisits(todayVisits.data)
 
     } catch (error) {
-      console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
+      console.error(`Error Getting Todays Patient : ${error.response?.data || error.message}`)
     } finally {
       setLoading(false)
     }
@@ -105,7 +105,7 @@ const Patients = () => {
       console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
     }
   }
-  
+
   const getPatientByPhone = async (phone) => {
 
     if (phone.length < 4) return;
@@ -184,6 +184,27 @@ const Patients = () => {
 
   };
 
+  // Handle edit patient
+  const updatePatientInfo = (patient) => {
+  
+    setEditedPatientId(patient._id)
+
+    setPatientData({
+      firstName: patient.firstName || "",
+      lastName: patient.lastName || "",
+      phone: patient.phone || "",
+      email: patient.email || "",
+      address: patient.address || "",
+      age: patient.age || "",
+      gender: patient.gender || "",
+      emergencyContact: patient.emergencyContact || "",
+      emergencyPhone: patient.emergencyPhone || "",
+      appointmentType: patient.appointmentType || "",
+      priority: patient.priority || ""
+    });
+
+  }
+
   // Handle form submission
   const handleSubmit = async () => {
 
@@ -193,6 +214,9 @@ const Patients = () => {
 
       try {
         const updatedPatient = await axios.patch(`${env.VITE_BASE_PATH}/patient/update/${editedPatientId}`, { ...patientData })
+
+        console.log("updatedPatient" ,updatedPatient );
+        
 
       } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
@@ -210,11 +234,11 @@ const Patients = () => {
       };
 
       try {
-        
-        const patient = await axios.post(`${env.VITE_BASE_PATH}/visit/registerPatientAndVisit`, {PatientInfo: {...patientData} , visitDetails})
-       
+
+        const patient = await axios.post(`${env.VITE_BASE_PATH}/visit/registerPatientAndVisit`, { PatientInfo: { ...patientData }, visitDetails })
+
         const PatientVisit = patient.data
-        
+
         setTodayVisits(prev => [...prev, PatientVisit]);
         setShowTokenReceipt({ isOpen: true, receiptData: PatientVisit })
         // setSelectedPatient(patient.data)
@@ -248,25 +272,6 @@ const Patients = () => {
     setTimeout(() => setShowSuccess(false), 2000);
   };
 
-  // Handle edit patient
-  const updatePatientInfo = (patient) => {
-    setEditedPatientId(patient._id)
-
-    setPatientData({
-      firstName: patient.firstName || "",
-      lastName: patient.lastName || "",
-      phone: patient.phone || "",
-      email: patient.email || "",
-      address: patient.address || "",
-      age: patient.age || "",
-      gender: patient.gender || "",
-      emergencyContact: patient.emergencyContact || "",
-      emergencyPhone: patient.emergencyPhone || "",
-      appointmentType: patient.appointmentType || "",
-      priority: patient.priority || ""
-    });
-
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -354,7 +359,7 @@ const Patients = () => {
                             className="flex justify-between items-center  p-2 hover:bg-gray-100 cursor-pointer text-sm"
                             onClick={(e) => {
 
-                              const AlreadyGenerated = todayVisits.some((todayPatient) => todayPatient.patient._id === patient._id);
+                              const AlreadyGenerated = todayVisits.some((visit) => visit.patient._id === patient._id);
 
                               if (AlreadyGenerated) {
 
@@ -365,12 +370,22 @@ const Patients = () => {
 
                                 (async () => {
 
-                                  try {
-                                    const patientUpdated = await axios.patch(`${env.VITE_BASE_PATH}/visit/update/${patient._id}`
-                                      , { tokenNo: currentToken })
+                                  const visitDetails = {
+                                    tokenNo: currentToken,
+                                    registrationTime: new Date().toLocaleTimeString(`en-US`, {
+                                      timeStyle: 'short',
+                                      hour12: true
+                                    }),
+                                    registrationDate: new Date().toISOString(),
+                                    status: 'waiting'
+                                  };
 
-                                    setTodayVisits(prev => [...prev, patientUpdated.data]);
-                                    setShowTokenReceipt({ isOpen: true, receiptData: patientUpdated.data });
+                                  try {
+                                    const newVisit = await axios.post(`${env.VITE_BASE_PATH}/visit/newVisit/`
+                                      , { visitDetails: visitDetails , patientId: patient._id })
+
+                                    setTodayVisits(prev => [...prev, newVisit.data]);
+                                    setShowTokenReceipt({ isOpen: true, receiptData: newVisit.data });
 
                                   } catch (error) {
                                     console.error('❌ Error:', error.response?.data || error.message);
@@ -610,95 +625,95 @@ const Patients = () => {
           </div>
 
           {/* Today's Patients Queue */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-white rounded-lg shadow-sm">
-              <div className='max-h-[500px]s'>
-                <div className="flex items-center justify-between mb-4 ">
-                  <h2 className="text-lg font-semibold text-gray-900">Today's Queue</h2>
-                  <div className="text-sm text-gray-500 flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
-                    {todayVisits.patient?.length} patients
-                  </div>
+          <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-white rounded-lg shadow-sm">
+            <div className='max-h-[500px]s'>
+              <div className="flex items-center justify-between mb-4 ">
+                <h2 className="text-lg font-semibold text-gray-900">Today's Queue</h2>
+                <div className="text-sm text-gray-500 flex items-center">
+                  <Clock className="h-4 w-4 mr-1" />
+                  {todayVisits.patient?.length} patients
                 </div>
               </div>
+            </div>
 
-              {loading ? (
-                // Skeleton placeholder
-                <div className="space-y-3">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="p-3 rounded-lg bg-gray-100 animate-pulse space-y-3"
-                    >
-                      {/* Token and Status line */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="h-4 w-10 bg-gray-300 rounded"></div> {/* token placeholder */}
-                        <div className="h-5 w-16 bg-gray-300 rounded-full"></div> {/* status badge */}
-                      </div>
-
-                      {/* Name line */}
-                      <div className="h-4 w-32 bg-gray-300 rounded"></div>
-
-                      {/* Appointment + time line */}
-                      <div className="h-3 w-28 bg-gray-200 rounded"></div>
+            {loading ? (
+              // Skeleton placeholder
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="p-3 rounded-lg bg-gray-100 animate-pulse space-y-3"
+                  >
+                    {/* Token and Status line */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="h-4 w-10 bg-gray-300 rounded"></div> {/* token placeholder */}
+                      <div className="h-5 w-16 bg-gray-300 rounded-full"></div> {/* status badge */}
                     </div>
-                  ))}
+
+                    {/* Name line */}
+                    <div className="h-4 w-32 bg-gray-300 rounded"></div>
+
+                    {/* Appointment + time line */}
+                    <div className="h-3 w-28 bg-gray-200 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              todayVisits.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p>No patients registered today</p>
                 </div>
               ) : (
-                todayVisits.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>No patients registered today</p>
-                  </div>
-                ) : (
-                  todayVisits?.slice().reverse().map((visit) => (
-                    <div key={visit._id}
-                      onClick={() => {
-                        setShowTokenReceipt({ isOpen: true, receiptData: visit })
-                      }}
-                      className={`p-3 border rounded-lg ${visit.priority === 'emergency' ? 'border-red-200 bg-red-50' :
-                        visit?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
-                          'border-gray-200 bg-gray-50'
+                todayVisits?.slice().reverse().map((visit) => (
+                  <div key={visit._id}
+                    onClick={() => {
+                      setShowTokenReceipt({ isOpen: true, receiptData: visit })
+                    }}
+                    className={`p-3 border rounded-lg ${visit.priority === 'emergency' ? 'border-red-200 bg-red-50' :
+                      visit?.priority === 'urgent' ? 'border-yellow-200 bg-yellow-50' :
+                        'border-gray-200 bg-gray-50'
+                      }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium text-gray-900">
+                        #{visit?.tokenNo.slice(-3)}
+                      </div>
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${visit.priority === 'emergency' ? 'bg-red-100 text-red-800' :
+                        visit?.priority === 'urgent' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
                         }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="font-medium text-gray-900">
-                          #{visit?.tokenNo.slice(-3)}
-                        </div>
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${visit.priority === 'emergency' ? 'bg-red-100 text-red-800' :
-                          visit?.priority === 'urgent' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-800'
-                          }`}>
-                          {visit?.status}
-                        </div>
+                        {visit?.status}
                       </div>
-                      <div className="text-sm text-gray-700">
-                        {visit.patient?.firstName} {visit.patient?.lastName}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {visit?.appointmentType} • {visit?.registrationTime}
-                      </div>
-
                     </div>
-                  ))
-                )
-              )}
-              <TokenReceipt
-                isOpen={showTokenReceipt.isOpen}
-                onClose={() => setShowTokenReceipt(false)}
-                errors={errors}
-                setErrors={setErrors}
-                receiptData={
-                  {
-                  ...showTokenReceipt.receiptData , 
+                    <div className="text-sm text-gray-700">
+                      {visit.patient?.firstName} {visit.patient?.lastName}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {visit?.appointmentType} • {visit?.registrationTime}
+                    </div>
+
+                  </div>
+                ))
+              )
+            )}
+            <TokenReceipt
+              isOpen={showTokenReceipt.isOpen}
+              onClose={() => setShowTokenReceipt(false)}
+              errors={errors}
+              setErrors={setErrors}
+              receiptData={
+                {
+                  ...showTokenReceipt.receiptData,
                   estimatedTime: '',
                   department: '',
                   doctor: '',
                   notes: '',
                   instructions: ''
-                  }
                 }
-              />
-              {/* <PatientFileModal isOpen={showTokenReceipt} patient={selectedPatient} onClose={() => { setSelectedPatient(null), setShowTokenReceipt(false) }} /> */}
-            </div>
+              }
+            />
+            {/* <PatientFileModal isOpen={showTokenReceipt} patient={selectedPatient} onClose={() => { setSelectedPatient(null), setShowTokenReceipt(false) }} /> */}
+          </div>
         </div>
       </div>
     </div>

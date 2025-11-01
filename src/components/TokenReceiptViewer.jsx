@@ -16,7 +16,6 @@ const TokenReceipt = ({
   
 }) => {
   const receiptRef = useRef();
-    console.log(receiptData);
 
   useEffect(() => {
     if (errors?.message) {

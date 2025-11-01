@@ -81,20 +81,36 @@ export const registerPatientAndVisit = async (req, res) => {
 
 }
 
-export const updatePatientInfo = async (req, res) => {
-    const { id } = req.params
-    const { status , tokenNo } = req.body || {};
+export const insertNewVisit = async (req, res) => {
+
+    const { patientId , visitDetails } = req.body || {};
     
     try {
-        const updatedPatient = await Patient.findByIdAndUpdate(id, { $set: {status , tokenNo} }, { new: true })
+        const response = await PatientVisit.create({...visitDetails , patient: patientId})
         
-        if (!updatedPatient) {
-            return res.status(404).json({ message: "Patient not found" });
-        }
-        console.log(updatedPatient);
+        const newVisit = await response.populate("patient")
+
+        console.log(newVisit);
         
+        res.status(201).json(newVisit);
+        
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+
+}
+
+export const updatePatientInfo = async (req, res) => {
+    const { id } = req.params
+    const patientData = req.body    
+
+    try {
+        const updatedPatient = await Patient.findByIdAndUpdate(id, patientData  , {new: true})
+
         res.status(201).json(updatedPatient);
-        
+        console.log(updatedPatient);
+
+
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
