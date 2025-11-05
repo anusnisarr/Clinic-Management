@@ -12,18 +12,24 @@ const Patients = () => {
     isOpen: false,
     receiptData: {}
   });
-  const [showTokenFile, setShowTokenFile] = useState(false);
   const [editedPatientId, setEditedPatientId] = useState("");
   const [todayVisits, setTodayVisits] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [allPatients, setAllPatients] = useState([]);
   const [errors, setErrors] = useState({});
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+
+
+  const handleBlur = () => setSuggestions([]);
+
+  const [showSuccess, setShowSuccess] = useState({
+    status: false,
+    message: ""
+  });
+  const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
 
   const currentToken = useMemo(() => {
-    if (loading) return '';
+    if (loading) return;
     return (todayVisits.length + 1).toString().padStart(3, '0');
   }, [todayVisits, loading]);
 
@@ -38,9 +44,17 @@ const Patients = () => {
     gender: '',
     emergencyContact: '',
     emergencyPhone: '',
-    appointmentType: 'consultation',
-    priority: 'normal',
-    medicalHistory: []
+  });
+
+  const [visitData , setVisitData] = useState({    
+    registrationTime: new Date().toLocaleTimeString(`en-US`, {
+      timeStyle: 'short',
+      hour12: true
+    }),
+    registrationDate: new Date().toISOString(),
+    status: 'waiting',
+    appointmentType: "General Consultation",
+    priority: "Normal"
   });
 
   useEffect(() => {
@@ -76,12 +90,11 @@ const Patients = () => {
     console.log("currently Selected Patient", selectedPatient);
     console.log("CcurrentToken", currentToken);
     console.log("show token data", showTokenReceipt)
-    setLoading(true)
   }
 
   const getTodayVisits = async () => {
-
     try {
+      setLoading(true)
       const todayVisits = await axios.get(`${env.VITE_BASE_PATH}/visit/todayVisits`)
 
       setTodayVisits(todayVisits.data)
@@ -107,10 +120,7 @@ const Patients = () => {
   }
 
   const getPatientByPhone = async (phone) => {
-
-    if (phone.length < 4) return;
-
-
+    
     try {
       const res = await axios.get(`${env.VITE_BASE_PATH}/patient/search?phone=${phone}`)
 
@@ -132,21 +142,43 @@ const Patients = () => {
     return nextNumber;
   };
 
+  useEffect(() => {
+    console.log("Updated patientData:", patientData);
+    console.log("Updated visitData:", visitData);
+    console.log("token no :", currentToken);
+
+  }, [patientData , visitData]);
+
   // Handle input changes
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target;  
 
     if (name === "age" && value < 0) return;
 
-    if (name === "phone") getPatientByPhone(value);
+    if (name === "phone" && value.length >= 4) getPatientByPhone(value);
 
-    if (name === "phone" && value === "") setSuggestions([]);
+    if (name === "phone" && value === "" || value.length < 4) setSuggestions([]);
 
+    const patientDataKeys = Object.keys(patientData)
+    const visitDataKeys = Object.keys(visitData)
+    
+    if (patientDataKeys.includes(name)) {
+      console.log("nn" , name);
+      setPatientData(prev => ({
+         ...prev,
+         [name]: value
+       }));
+    }
 
-    setPatientData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (visitDataKeys.includes(name)) {
+      console.log("nn" , name);
+      
+       setVisitData(prev => ({
+         ...prev,
+         [name]: value
+       }));
+    }
+
 
     // Clear error when user starts typing
     if (errors[name]) {
@@ -186,7 +218,7 @@ const Patients = () => {
 
   // Handle edit patient
   const updatePatientInfo = (patient) => {
-  
+
     setEditedPatientId(patient._id)
 
     setPatientData({
@@ -199,8 +231,6 @@ const Patients = () => {
       gender: patient.gender || "",
       emergencyContact: patient.emergencyContact || "",
       emergencyPhone: patient.emergencyPhone || "",
-      appointmentType: patient.appointmentType || "",
-      priority: patient.priority || ""
     });
 
   }
@@ -215,33 +245,22 @@ const Patients = () => {
       try {
         const updatedPatient = await axios.patch(`${env.VITE_BASE_PATH}/patient/update/${editedPatientId}`, { ...patientData })
 
-        console.log("updatedPatient" ,updatedPatient );
-        
-
       } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
       }
 
     } else {
-      const visitDetails = {
-        tokenNo: currentToken,
-        registrationTime: new Date().toLocaleTimeString(`en-US`, {
-          timeStyle: 'short',
-          hour12: true
-        }),
-        registrationDate: new Date().toISOString(),
-        status: 'waiting'
-      };
 
       try {
 
-        const patient = await axios.post(`${env.VITE_BASE_PATH}/visit/registerPatientAndVisit`, { PatientInfo: { ...patientData }, visitDetails })
+        const patient = await axios.post(`${env.VITE_BASE_PATH}/visit/registerPatientAndVisit`, { patientData: { ...patientData }, visitData: {...visitData , tokenNo: currentToken } })
 
         const PatientVisit = patient.data
 
         setTodayVisits(prev => [...prev, PatientVisit]);
+        setShowSuccess({ status: true, message: `Patient registered successfully with token #${PatientVisit.tokenNo}` });
+        setTimeout(() => setShowSuccess({ status: false, message: `` }), 3000);
         setShowTokenReceipt({ isOpen: true, receiptData: PatientVisit })
-        // setSelectedPatient(patient.data)
 
 
       } catch (error) {
@@ -261,15 +280,9 @@ const Patients = () => {
       gender: '',
       emergencyContact: '',
       emergencyPhone: '',
-      appointmentType: 'consultation',
-      priority: 'normal',
-      medicalHistory: []
 
     });
 
-    // Show success message
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2000);
   };
 
 
@@ -312,11 +325,11 @@ const Patients = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-6">Patient Information</h2>
-              {showSuccess && (
+              {showSuccess.status && (
                 <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
                   <div className="flex">
                     <div className="text-green-800">
-                      <strong>Success!</strong> Patient registered successfully with token #{currentToken.slice(-3)}
+                      <strong>Success!</strong> {`${showSuccess.message}`}
                     </div>
                   </div>
                 </div>
@@ -338,6 +351,7 @@ const Patients = () => {
                         name="phone"
                         value={patientData.phone}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         className={`appearance-none pl-10 w-full p-3 border focus:outline-none rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-300'
                           }`}
                         placeholder="Enter phone number"
@@ -369,20 +383,10 @@ const Patients = () => {
                               } else {
 
                                 (async () => {
-
-                                  const visitDetails = {
-                                    tokenNo: currentToken,
-                                    registrationTime: new Date().toLocaleTimeString(`en-US`, {
-                                      timeStyle: 'short',
-                                      hour12: true
-                                    }),
-                                    registrationDate: new Date().toISOString(),
-                                    status: 'waiting'
-                                  };
-
+                                
                                   try {
                                     const newVisit = await axios.post(`${env.VITE_BASE_PATH}/visit/newVisit/`
-                                      , { visitDetails: visitDetails , patientId: patient._id })
+                                      , { visitData: {...visitData , tokenNo: currentToken}, patientId: patient._id })
 
                                     setTodayVisits(prev => [...prev, newVisit.data]);
                                     setShowTokenReceipt({ isOpen: true, receiptData: newVisit.data });
@@ -586,11 +590,11 @@ const Patients = () => {
                     onChange={handleInputChange}
                     className="w-full p-3 border border-gray-300 focus:outline-none rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="consultation">General Consultation</option>
-                    <option value="followup">Follow-up</option>
-                    <option value="emergency">Emergency</option>
-                    <option value="checkup">Health Checkup</option>
-                    <option value="vaccination">Vaccination</option>
+                    <option value="General Consultation">General Consultation</option>
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Health Checkup">Health Checkup</option>
+                    <option value="Vaccination">Vaccination</option>
                   </select>
                 </div>
 

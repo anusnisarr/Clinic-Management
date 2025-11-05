@@ -7,10 +7,8 @@ export const getTodayVisit = async (req, res) => {
 
         const today = new Date();
 
-        // Start of today
         const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-
-        // End of today
+        
         const endOfDay = new Date(new Date().setHours(23, 59, 59, 999));
 
         const getTodayVisits = await PatientVisit.find({
@@ -65,11 +63,11 @@ export const getAllVisits = async (req, res) => {
 }
 
 export const registerPatientAndVisit = async (req, res) => {
-    const {PatientInfo , visitDetails} = req.body    
+    const {patientData , visitData} = req.body    
     
     try {
-        const patient = await Patient.create(PatientInfo)
-        const visit = await PatientVisit.create({...visitDetails , patient: patient._id})
+        const patient = await Patient.create(patientData)
+        const visit = await PatientVisit.create({...visitData , patient: patient._id})
 
         const patientWithVisit = await visit.populate("patient")        
                 
@@ -108,8 +106,6 @@ export const updatePatientInfo = async (req, res) => {
         const updatedPatient = await Patient.findByIdAndUpdate(id, patientData  , {new: true})
 
         res.status(201).json(updatedPatient);
-        console.log(updatedPatient);
-
 
     } catch (error) {
         res.status(400).json({ error: error.message });

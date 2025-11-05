@@ -19,11 +19,11 @@ const medicalHistorySchema = mongoose.Schema({
 
 const patientVisitSchema = mongoose.Schema({
     patient : {type: mongoose.Schema.Types.ObjectId, ref: "Patient"},
-    appointmentType : {type: String},
     tokenNo: {type: String},
-    priority : {type: String},
     registrationTime : {type: String},
     registrationDate : {type: Date},
+    appointmentType : {type: String},
+    priority : {type: String},
     status : {type: String},
     medicalHistory : [medicalHistorySchema]
         
