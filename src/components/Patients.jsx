@@ -8,31 +8,27 @@ import { CalendarDays, User, Calendar, Phone, Mail, MapPin, Hash, Clock, UserPlu
 const env = import.meta.env
 
 const Patients = () => {
+  const [editedPatientId, setEditedPatientId] = useState("");
+  const [todayVisits, setTodayVisits] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+
   const [showTokenReceipt, setShowTokenReceipt] = useState({
     isOpen: false,
     receiptData: {}
   });
-  const [editedPatientId, setEditedPatientId] = useState("");
-  const [todayVisits, setTodayVisits] = useState([]);
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [allPatients, setAllPatients] = useState([]);
-  const [errors, setErrors] = useState({});
-
-
-  const handleBlur = () => setSuggestions([]);
 
   const [showSuccess, setShowSuccess] = useState({
     status: false,
     message: ""
   });
-  const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
 
   const currentToken = useMemo(() => {
     if (loading) return;
     return (todayVisits.length + 1).toString().padStart(3, '0');
   }, [todayVisits, loading]);
-
 
   const [patientData, setPatientData] = useState({
     firstName: '',
@@ -57,11 +53,12 @@ const Patients = () => {
     priority: "Normal"
   });
 
+  const handleBlur = () => setSuggestions([]);
+
   useEffect(() => {
     getTodayVisits()
     // deleteAll()
   }, [])
-
 
   socket.on("status-updated", (data) => {
     setTodayVisits(prevPatients =>
@@ -106,19 +103,6 @@ const Patients = () => {
     }
   }
 
-  const getAllPatient = async () => {
-
-    try {
-      const res = await axios.get(`${env.VITE_BASE_PATH}/visit/`)
-      setAllPatients(res.data)
-      console.log(res.data);
-
-
-    } catch (error) {
-      console.error(`Error Getting All Patient : ${error.response?.data || error.message}`)
-    }
-  }
-
   const getPatientByPhone = async (phone) => {
     
     try {
@@ -136,19 +120,6 @@ const Patients = () => {
     }
   }
 
-  // Generate next token number
-  const generateNextToken = () => {
-    const nextNumber = (todayVisits.length + 1).toString().padStart(3, '0');
-    return nextNumber;
-  };
-
-  useEffect(() => {
-    console.log("Updated patientData:", patientData);
-    console.log("Updated visitData:", visitData);
-    console.log("token no :", currentToken);
-
-  }, [patientData , visitData]);
-
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;  
@@ -163,16 +134,13 @@ const Patients = () => {
     const visitDataKeys = Object.keys(visitData)
     
     if (patientDataKeys.includes(name)) {
-      console.log("nn" , name);
       setPatientData(prev => ({
          ...prev,
          [name]: value
        }));
     }
 
-    if (visitDataKeys.includes(name)) {
-      console.log("nn" , name);
-      
+    if (visitDataKeys.includes(name)) {      
        setVisitData(prev => ({
          ...prev,
          [name]: value
@@ -285,6 +253,39 @@ const Patients = () => {
 
   };
 
+  const handleSuggestion = (patient) => {
+
+  const AlreadyGenerated = todayVisits.some((visit) => visit.patient._id === patient._id);
+
+  if (AlreadyGenerated) {
+
+    setShowTokenReceipt({ isOpen: false, receiptData: {} })
+    setErrors({ message: "Token Already Generated!" })
+
+  } else {
+
+    (async () => {
+
+      try {
+        const newVisit = await axios.post(`${env.VITE_BASE_PATH}/visit/newVisit/`
+          , { visitData: { ...visitData, tokenNo: currentToken }, patientId: patient._id })
+
+        setTodayVisits(prev => [...prev, newVisit.data]);
+        setShowTokenReceipt({ isOpen: true, receiptData: newVisit.data });
+
+      } catch (error) {
+        console.error('❌ Error:', error.response?.data || error.message);
+      }
+
+    })();
+
+
+  }
+
+  setSelectedPatient(patient)
+  setSuggestions([]);
+
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -371,38 +372,7 @@ const Patients = () => {
                           <li
                             key={patient._id}
                             className="flex justify-between items-center  p-2 hover:bg-gray-100 cursor-pointer text-sm"
-                            onClick={(e) => {
-
-                              const AlreadyGenerated = todayVisits.some((visit) => visit.patient._id === patient._id);
-
-                              if (AlreadyGenerated) {
-
-                                setShowTokenReceipt({ isOpen: false, receiptData: {} })
-                                setErrors({ message: "Token Already Generated!" })
-
-                              } else {
-
-                                (async () => {
-                                
-                                  try {
-                                    const newVisit = await axios.post(`${env.VITE_BASE_PATH}/visit/newVisit/`
-                                      , { visitData: {...visitData , tokenNo: currentToken}, patientId: patient._id })
-
-                                    setTodayVisits(prev => [...prev, newVisit.data]);
-                                    setShowTokenReceipt({ isOpen: true, receiptData: newVisit.data });
-
-                                  } catch (error) {
-                                    console.error('❌ Error:', error.response?.data || error.message);
-                                  }
-
-                                })();
-
-
-                              }
-
-                              setSelectedPatient(patient)
-                              setSuggestions([]);
-                            }}
+                            onMouseDown={() => {handleSuggestion(patient)}}
                           >
                             {patient.firstName} {patient.lastName} – {patient.phone}
                             <button
