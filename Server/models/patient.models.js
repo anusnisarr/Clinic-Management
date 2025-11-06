@@ -11,6 +11,7 @@ const patientSchema = mongoose.Schema({
     gender  : {type: String},
     emergencyContact : {type: String},
     emergencyPhone : {type: String},
+    priority : {type: String}
 
 }, { timestamps: true } )
 
