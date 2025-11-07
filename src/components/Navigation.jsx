@@ -23,7 +23,7 @@ export default function Navigation() {
   const navigationItems = [
     { icon: Database, label: 'Patient', to:"/Patients" },
     { icon: FileText, label: 'Doctors', to:"/Doctors" },
-    { icon: Paperclip, label: 'Assets' , to:"/Assets"},
+    { icon: Paperclip, label: 'Visits' , to:"/Visits"},
     { icon: Play, label: 'API Playground', to:"/APIPlayground"}
   ];
 
