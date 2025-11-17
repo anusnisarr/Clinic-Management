@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Patients from './components/Patients';
 import Doctor from './components/Doctor';
-import Visits from './components/visits';
+import VisitHistory from './components/VisitHistory';
 
 
 
@@ -16,7 +16,7 @@ const App = () => {
                     <Route index element={<Patients />} />
                     <Route path="Patients" element={<Patients />} />
                     <Route path="Doctors" element={<Doctor />} />
-                    <Route path="Visits" element={<Visits />} />
+                    <Route path="VisitHistory" element={<VisitHistory />} />
 
                 </Route>
             </Routes>

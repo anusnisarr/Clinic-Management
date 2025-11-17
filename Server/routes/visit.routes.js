@@ -4,7 +4,7 @@ import { getAllVisits , getTodayVisit , insertNewVisit ,  registerPatientAndVisi
 
 const router = express.Router();
 
-router.get('/' , getAllVisits)
+router.get('/', getAllVisits)
 router.get('/todayVisits' , getTodayVisit)
 router.post('/registerPatientAndVisit' , registerPatientAndVisit)
 router.post('/newVisit' , insertNewVisit)

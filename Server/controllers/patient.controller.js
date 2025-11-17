@@ -51,10 +51,26 @@ export const searchPatientByPhone = async (req, res) => {
 }
 
 export const getAllVisits = async (req, res) => {
-    try {
-        const allPatient = await Patient.find().sort({ createdAt: -1 });
 
-        res.status(201).json(allPatient);
+    const  {page = 1, limit= 10 , columnsName , ...filters} = req.query
+
+    console.log(filters);
+    
+
+    const skip = (page - 1) * limit;
+
+    const projection =  columnsName ? columnsName.split(",").join(" "): "";
+    
+    try {
+        const visits = await PatientVisit.find(filters)
+        .populate("patient")
+        .select(projection)
+        .skip(skip)
+        .limit(limit)
+        .lean().
+        sort({ createdAt: -1 });
+
+        res.status(201).json(visits);
 
     } catch (error) {
         res.status(400).json({ error: error.message });
