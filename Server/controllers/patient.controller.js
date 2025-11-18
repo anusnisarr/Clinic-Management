@@ -52,10 +52,7 @@ export const searchPatientByPhone = async (req, res) => {
 
 export const getAllVisits = async (req, res) => {
 
-    const  {page = 1, limit= 10 , columnsName , ...filters} = req.query
-
-    console.log(filters);
-    
+    const  {page = 1, limit= 10 , columnsName , ...filters} = req.query    
 
     const skip = (page - 1) * limit;
 
@@ -63,14 +60,25 @@ export const getAllVisits = async (req, res) => {
     
     try {
         const visits = await PatientVisit.find(filters)
-        .populate("patient")
         .select(projection)
+        .populate({path:"patient" , select: projection})
         .skip(skip)
         .limit(limit)
         .lean().
         sort({ createdAt: -1 });
 
-        res.status(201).json(visits);
+        const flatData = visits.map(v => ({
+        id: v._id,
+        patientId: v.patient._id,
+        ...v,
+        ...v.patient,
+        patient: undefined, 
+        }));
+
+        const total = await PatientVisit.countDocuments();
+
+
+        res.status(201).json({ data: flatData, total });
 
     } catch (error) {
         res.status(400).json({ error: error.message });

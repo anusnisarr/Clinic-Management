@@ -3,8 +3,14 @@ import { DataGrid } from '@mui/x-data-grid';
 import {Paper , Typography , Box } from '@mui/material';
 import { getVisits } from '../api/visitApi';
 
-const columns = [
-  { field: '_id', headerName: 'ID', width: 70 },
+
+export default function VisitHistory() {
+
+  const [rows ,setRows] = useState([])
+  const [totalRows, setTotalRows] = useState(0)
+
+  const columns = [
+  { field: 'id', headerName: 'ID', width: 70 },
   { field: 'firstName', headerName: 'First name', width: 130 },
   { field: 'registrationDate', headerName: 'Registration Date', width: 130 },
   { field: 'lastName', headerName: 'Last name', width: 130 },
@@ -24,35 +30,28 @@ const columns = [
   },
 ];
 
-const columnsName = columns.map((elm)=> elm.field)
-
-
-export default function VisitHistory() {
-
-  const [rows ,setRows] = useState([])
+  const columnsName = columns.map((elm)=> elm.field)
 
   const [paginationModel, setPaginationModel] = useState({
-  page: 0,
-  pageSize: 10
-});
+    page: 0,
+    pageSize: 10
+  });
 
   useEffect(() => {
     fetchData(paginationModel.page, paginationModel.pageSize , columnsName);
-
   }, [paginationModel]);
 
 
-const handlePaginationChange = (newModel) => {
-  setPaginationModel(newModel);
+  function handlePaginationChange(newModel) {
+    setPaginationModel(newModel);
 
-};
+  }
 
   const fetchData = async (page, limit , columnsName) => {
     try {
       const data = await getVisits(page + 1, limit , columnsName); // backend pages start at 1
-      setRows(data.data);
-      console.log(data);
-      
+      await setRows(data.data);
+      setTotalRows(data.total);
     } catch (error) {
       console.error("Failed to fetch visits:", error);
     }
@@ -88,6 +87,8 @@ const handlePaginationChange = (newModel) => {
         pageSizeOptions={[10, 20 , 50 , 100 ]}
         initialState={{ pagination: { paginationModel } }}
         pagination
+        paginationMode="server"
+        rowCount={totalRows}
         paginationModel={paginationModel}
         onPaginationModelChange={handlePaginationChange}
         sx={{
