@@ -11,14 +11,24 @@ export default function VisitHistory() {
 
   const columns = [
   { field: 'id', headerName: 'ID', width: 70 },
+  { field: 'registrationDate', 
+    headerName: 'Registration Date', 
+    width: 200 , 
+    valueGetter: ( value , row) => {
+    const date = new Date(row.registrationDate);
+    return date.toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      hour12: true,
+    });
+  }},
   { field: 'firstName', headerName: 'First name', width: 130 },
-  { field: 'registrationDate', headerName: 'Registration Date', width: 130 },
   { field: 'lastName', headerName: 'Last name', width: 130 },
   {
     field: 'age',
     headerName: 'Age',
     type: 'number',
-    width: 90,
+    width: 10,
   },
   {
     field: 'fullName',
@@ -50,7 +60,7 @@ export default function VisitHistory() {
   const fetchData = async (page, limit , columnsName) => {
     try {
       const data = await getVisits(page + 1, limit , columnsName); // backend pages start at 1
-      await setRows(data.data);
+      setRows(data.data);
       setTotalRows(data.total);
     } catch (error) {
       console.error("Failed to fetch visits:", error);
