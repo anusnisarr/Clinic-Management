@@ -12,7 +12,11 @@ export default function VisitHistory() {
 
 
   const columns = [
-  { field: 'id', headerName: 'ID', width: 70 },
+  { field: 'id', headerName: 'ID', width: 70 ,
+  valueGetter: (value, row, column, apiRef) => {
+    return apiRef.current.getRowIndexRelativeToVisibleRows(row.id) + 1;
+  }
+   },
   { field: 'registrationDate', 
     headerName: 'Registration Date', 
     width: 200 , 
