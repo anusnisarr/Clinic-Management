@@ -264,7 +264,7 @@ const Patients = () => {
 
   } else {
 
-    (async () => {
+    (async () => {      
 
       try {
         const newVisit = await axios.post(`${env.VITE_BASE_PATH}/visit/newVisit/`

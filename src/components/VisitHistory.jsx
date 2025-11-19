@@ -13,10 +13,10 @@ export default function VisitHistory() {
 
   const columns = [
   { field: 'id', headerName: 'ID', width: 70 ,
-  valueGetter: (value, row, column, apiRef) => {
-    return apiRef.current.getRowIndexRelativeToVisibleRows(row.id) + 1;
-  }
-   },
+    valueGetter: (value, row, column, apiRef) => {
+      return apiRef.current.getRowIndexRelativeToVisibleRows(row.id) + 1;
+    }
+  },
   { field: 'registrationDate', 
     headerName: 'Registration Date', 
     width: 200 , 
@@ -28,15 +28,10 @@ export default function VisitHistory() {
       hour12: true,
     });
   }},
+  { field: 'tokenNo', headerName: 'Token No', width: 130 },
   { field: 'firstName', headerName: 'First name', width: 130 },
-  { field: 'lastName', headerName: 'Last name', width: 130 },
-  {
-    field: 'age',
-    headerName: 'Age',
-    type: 'number',
-    width: 10,
-  },
-  {
+  { field: 'lastName', headerName: 'Last name',  width: 130 },
+    {
     field: 'fullName',
     headerName: 'Full name',
     description: 'This column has a value getter and is not sortable.',
@@ -44,6 +39,11 @@ export default function VisitHistory() {
     width: 160,
     valueGetter: (value, row) => `${row.firstName || ''} ${row.lastName || ''}`,
   },
+  { field: 'age', headerName: 'Age', type: 'number', width: 10 },
+  { field: 'appointmentType', headerName: 'Appointment Type', width: 130 },
+  { field: 'priority', headerName: 'Priority', width: 130 },
+  { field: 'status', headerName: 'Status', width: 130 },
+
 ];
 
   const columnsName = columns.map((elm)=> elm.field)
@@ -54,15 +54,12 @@ export default function VisitHistory() {
   });
 
   useEffect(() => {
-    fetchData(paginationModel.page, paginationModel.pageSize , columnsName);
-    console.log(isLoading);
-    
+    fetchData(paginationModel.page, paginationModel.pageSize , columnsName);    
   }, [paginationModel]);
 
 
   function handlePaginationChange(newModel) {
     setPaginationModel(newModel);
-
   }
 
   const fetchData = async (page, limit , columnsName) => {
@@ -105,7 +102,12 @@ export default function VisitHistory() {
     >
       <DataGrid
         rows={rows}
+        getRowId={(row) => row.id}
         columns={columns}
+        columnVisibilityModel={{
+          firstName: false,
+          lastName: false,
+        }}
         loading={isLoading}
         pageSizeOptions={[10, 20 , 50 , 100 ]}
         initialState={{ pagination: { paginationModel } }}

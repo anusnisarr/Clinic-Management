@@ -72,7 +72,8 @@ export const getAllVisits = async (req, res) => {
         patientId: v.patient._id,
         ...v,
         ...v.patient,
-        patient: undefined, 
+        ...v.patient,
+        patient: undefined
         }));
 
         const total = await PatientVisit.countDocuments();
@@ -88,6 +89,7 @@ export const getAllVisits = async (req, res) => {
 
 export const registerPatientAndVisit = async (req, res) => {
     const {patientData , visitData} = req.body    
+    console.table(visitData)
     
     try {
         const patient = await Patient.create(patientData)
@@ -105,10 +107,10 @@ export const registerPatientAndVisit = async (req, res) => {
 
 export const insertNewVisit = async (req, res) => {
 
-    const { patientId , visitDetails } = req.body || {};
+    const { patientId , visitData } = req.body || {};
     
     try {
-        const response = await PatientVisit.create({...visitDetails , patient: patientId})
+        const response = await PatientVisit.create({...visitData , patient: patientId})
         
         const newVisit = await response.populate("patient")
 
