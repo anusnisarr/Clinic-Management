@@ -8,6 +8,8 @@ export default function VisitHistory() {
 
   const [rows ,setRows] = useState([])
   const [totalRows, setTotalRows] = useState(0)
+  const [isLoading, setIsLoading] = useState(false);
+
 
   const columns = [
   { field: 'id', headerName: 'ID', width: 70 },
@@ -49,6 +51,8 @@ export default function VisitHistory() {
 
   useEffect(() => {
     fetchData(paginationModel.page, paginationModel.pageSize , columnsName);
+    console.log(isLoading);
+    
   }, [paginationModel]);
 
 
@@ -58,12 +62,16 @@ export default function VisitHistory() {
   }
 
   const fetchData = async (page, limit , columnsName) => {
+    setIsLoading(true)
     try {
       const data = await getVisits(page + 1, limit , columnsName); // backend pages start at 1
       setRows(data.data);
       setTotalRows(data.total);
     } catch (error) {
       console.error("Failed to fetch visits:", error);
+    }
+    finally{
+      setIsLoading(false)
     }
   };
 
@@ -94,6 +102,7 @@ export default function VisitHistory() {
       <DataGrid
         rows={rows}
         columns={columns}
+        loading={isLoading}
         pageSizeOptions={[10, 20 , 50 , 100 ]}
         initialState={{ pagination: { paginationModel } }}
         pagination
