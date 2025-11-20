@@ -21,7 +21,7 @@ export default function VisitHistory() {
   const columns = [
   { field: 'id', headerName: 'ID', width: 70 ,
     valueGetter: (value, row, column, apiRef) => {
-      return apiRef.current.getRowIndexRelativeToVisibleRows(value) + (paginationModel.page * paginationModel.pageSize) + 1;
+      return totalRows - apiRef.current.getRowIndexRelativeToVisibleRows(value) - (paginationModel.page * paginationModel.pageSize);
     }
   },
   { field: 'registrationDate', 
