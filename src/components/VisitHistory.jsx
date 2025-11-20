@@ -9,12 +9,19 @@ export default function VisitHistory() {
   const [rows ,setRows] = useState([])
   const [totalRows, setTotalRows] = useState(0)
   const [isLoading, setIsLoading] = useState(false);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10
+  });
 
+    useEffect(() => {
+    fetchData(paginationModel.page, paginationModel.pageSize , columnsName);    
+  }, [paginationModel]);
 
   const columns = [
   { field: 'id', headerName: 'ID', width: 70 ,
     valueGetter: (value, row, column, apiRef) => {
-      return apiRef.current.getRowIndexRelativeToVisibleRows(row.id) + 1;
+      return apiRef.current.getRowIndexRelativeToVisibleRows(value) + (paginationModel.page * paginationModel.pageSize) + 1;
     }
   },
   { field: 'registrationDate', 
@@ -45,18 +52,7 @@ export default function VisitHistory() {
   { field: 'status', headerName: 'Status', width: 130 },
 
 ];
-
   const columnsName = columns.map((elm)=> elm.field)
-
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10
-  });
-
-  useEffect(() => {
-    fetchData(paginationModel.page, paginationModel.pageSize , columnsName);    
-  }, [paginationModel]);
-
 
   function handlePaginationChange(newModel) {
     setPaginationModel(newModel);
