@@ -24,7 +24,7 @@ export default function Navigation() {
     { icon: Database, label: 'Patient', to:"/Patients" },
     { icon: FileText, label: 'Doctors', to:"/Doctors" },
     { icon: Paperclip, label: 'VisitHistory' , to:"/VisitHistory"},
-    { icon: Play, label: 'API Playground', to:"/APIPlayground"}
+    { icon: Play, label: 'Patient List', to:"/PatientList"}
   ];
 
   const bottomNavigationItems = [

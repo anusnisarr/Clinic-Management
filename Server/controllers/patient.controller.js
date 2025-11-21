@@ -87,6 +87,32 @@ export const getAllVisits = async (req, res) => {
 
 }
 
+export const getAllPatient = async (req, res) => {
+
+    const  {page = 1, limit= 10 , columnsName , ...filters} = req.query    
+
+    const skip = (page - 1) * limit;
+
+    const projection =  columnsName ? columnsName.split(",").join(" "): "";
+    
+    try {
+        const visits = await Patient.find(filters)
+        .select(projection)
+        .skip(skip)
+        .limit(limit)
+        .lean().
+        sort({ createdAt: -1 });
+
+        const total = await Patient.countDocuments();
+
+        res.status(201).json({ data: visits, total });
+
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+
+}
+
 export const registerPatientAndVisit = async (req, res) => {
     const {patientData , visitData} = req.body    
     console.table(visitData)
