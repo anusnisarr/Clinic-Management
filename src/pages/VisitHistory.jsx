@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getVisits } from "../api/visitService";
 import { useVisitColumns, columnFields } from "../constants/visitColumns";
-import DataTable from './dataTable';
+import DataTable from '../components/dataTable';
 
 export default function VisitHistory() {
 
