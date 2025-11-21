@@ -103,9 +103,14 @@ export const getAllPatient = async (req, res) => {
         .lean().
         sort({ createdAt: -1 });
 
+    const flatData = visits.map(v => ({
+        id: v._id,
+        ...v,
+        }));
+
         const total = await Patient.countDocuments();
 
-        res.status(201).json({ data: visits, total });
+        res.status(201).json({ data: flatData, total });
 
     } catch (error) {
         res.status(400).json({ error: error.message });
