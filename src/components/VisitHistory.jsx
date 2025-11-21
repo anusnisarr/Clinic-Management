@@ -2,6 +2,7 @@ import { useState , useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import {Paper , Typography , Box } from '@mui/material';
 import { getVisits } from '../api/visitApi';
+import { LogIn } from 'lucide-react';
 
 
 export default function VisitHistory() {

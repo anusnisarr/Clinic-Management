@@ -590,10 +590,11 @@ const Patients = () => {
             <div className="flex justify-end pt-6">
               <button
                 onClick={handleSubmit}
-                className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md font-medium transition-colors duration-200 flex items-center space-x-2"
+                className="fixed bottom-5 right-125 shadow-lg cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md font-medium transition-colors duration-200 flex items-center space-x-2"
               >
                 <UserPlus className="h-4 w-4" />
-                <span>{editedPatientId ? "Update Patient & Assign Token" : "Register Patient & Assign Token"}</span>
+                <span>
+                  {editedPatientId ? "Update Patient & Assign Token" : "Register Patient & Assign Token"}</span>
               </button>
             </div>
           </div>
