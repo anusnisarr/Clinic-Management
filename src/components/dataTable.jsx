@@ -9,6 +9,7 @@ export default function DataTable({
   error,
   paginationModel,
   onPaginationChange,
+onFilterModelChange,
   title,
 }) {
   return (
@@ -44,20 +45,23 @@ export default function DataTable({
             rows={rows}
             getRowId={(row) => row.id}
             columns={columns}
-            columnVisibilityModel={{ firstName: false, lastName: false }}
             loading={loading}
-            pageSizeOptions={[10, 20, 50, 100]}
+            pageSizeOptions={[50, 100 , 500 ]}
             pagination
             showToolbar
             paginationMode="server"
             rowCount={total}
             paginationModel={paginationModel}
             onPaginationModelChange={onPaginationChange}
+            onFilterModelChange={onFilterModelChange}
+            filterMode="server"
+            disableColumnFilter
+            disableColumnMenu
+            disableDensitySelector
             sx={{
               border: 0,
               height: "100%",
-              "& .MuiDataGrid-main": { height: "100%" },
-              "& .MuiDataGrid-virtualScroller": { overflowY: "auto" },
+              "& .MuiDataGrid-virtualScroller": { overflowY: "auto !important" }
             }}
           />
         )}

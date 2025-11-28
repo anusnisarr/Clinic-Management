@@ -28,7 +28,7 @@ const PatientFileModal = ({ patient,  isOpen , onClose }) => {
         <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
           <div>
             <p className="font-semibold text-gray-600">Full Name</p>
-            <p className="border-b border-gray-200 pb-1">{patient.firstName} {patient.lastName}</p>
+            <p className="border-b border-gray-200 pb-1">{patient.fullName}</p>
           </div>
           <div>
             <p className="font-semibold text-gray-600">Contact</p>

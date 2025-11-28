@@ -1,5 +1,6 @@
 import Patient from "../models/patient.models.js"
 import PatientVisit from "../models/visits.modals.js";
+import {buildSearchQuery} from "../utils/buildSearchQuery.js";
 
 export const getTodayVisit = async (req, res) => {
 
@@ -52,14 +53,16 @@ export const searchPatientByPhone = async (req, res) => {
 
 export const getAllVisits = async (req, res) => {
 
-    const  {page = 1, limit= 10 , columnsName , ...filters} = req.query    
+    const  {page = 1, limit= 10 , columnsName , search} = req.query   
+
+    const filter = buildSearchQuery(search);
 
     const skip = (page - 1) * limit;
 
     const projection =  columnsName ? columnsName.split(",").join(" "): "";
     
     try {
-        const visits = await PatientVisit.find(filters)
+        const visits = await PatientVisit.find(filter)
         .select(projection)
         .populate({path:"patient" , select: projection})
         .skip(skip)
@@ -68,16 +71,15 @@ export const getAllVisits = async (req, res) => {
         sort({ createdAt: -1 });
 
         const flatData = visits.map(v => ({
-        id: v._id,
-        patientId: v.patient._id,
-        ...v,
-        ...v.patient,
-        ...v.patient,
-        patient: undefined
+            id: v._id,
+            patientId: v.patient._id,
+            ...v,
+            ...v.patient,
+            ...v.patient,
+            patient: undefined
         }));
 
         const total = await PatientVisit.countDocuments();
-
 
         res.status(201).json({ data: flatData, total });
 
@@ -89,24 +91,26 @@ export const getAllVisits = async (req, res) => {
 
 export const getAllPatient = async (req, res) => {
 
-    const  {page = 1, limit= 10 , columnsName , ...filters} = req.query    
+    const  {page = 1, limit= 10 , columnsName , search} = req.query    
+
+    const filter = buildSearchQuery(search);
 
     const skip = (page - 1) * limit;
 
     const projection =  columnsName ? columnsName.split(",").join(" "): "";
     
     try {
-        const visits = await Patient.find(filters)
+        const patients = await Patient.find(filter)
         .select(projection)
         .skip(skip)
         .limit(limit)
         .lean().
         sort({ createdAt: -1 });
 
-    const flatData = visits.map(v => ({
+    const flatData = patients.map(v => ({
         id: v._id,
         ...v,
-        }));
+    }));
 
         const total = await Patient.countDocuments();
 

@@ -18,17 +18,8 @@ export const usePatientColumns = (totalRows, paginationModel) => {
       hour12: true,
     });
   }},
-  { field: 'firstName', headerName: 'First name', width: 130 },
-  { field: 'lastName', headerName: 'Last name',  width: 130 },
+  { field: 'fullName', headerName: 'Full Name', width: 130 },
   { field: 'phone', headerName: 'Phone', width: 130 },
-    {
-    field: 'fullName',
-    headerName: 'Full name',
-    description: 'This column has a value getter and is not sortable.',
-    sortable: false,
-    width: 160,
-    valueGetter: (value, row) => `${row.firstName || ''} ${row.lastName || ''}`,
-  },
   { field: 'age', headerName: 'Age', type: 'number', width: 10 },
   { field: 'address', headerName: 'Address', width: 300 },
   { field: 'emergencyContact', headerName: 'Emergency Contact', width: 200 },
@@ -37,6 +28,6 @@ export const usePatientColumns = (totalRows, paginationModel) => {
 };
 
 export const columnFields = [
-  "_id", "createdAt", "firstName", "lastName", "phone",
+  "_id", "createdAt", "phone",
   "fullName", "age", "address", "emergencyContact", "emergencyPhone"
 ];

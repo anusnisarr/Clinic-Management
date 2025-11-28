@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 const patientSchema = mongoose.Schema({
 
-    firstName : {type: String},
-    lastName  : {type: String},
+    fullName : {type: String},
     phone  : {type: String},
     email  : {type: String},
     address  : {type: String},

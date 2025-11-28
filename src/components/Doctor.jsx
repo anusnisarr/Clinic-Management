@@ -9,95 +9,6 @@ import {
   Stethoscope, Pill, Thermometer, Activity, ChevronDown, ChevronUp
 } from 'lucide-react';
 
-// Sample patient data with medical history
-const samplePatients = [
-  {
-    _id: '1',
-    firstName: 'John',
-    lastName: 'Doe',
-    tokenNo: 'TOK001',
-    appointmentType: 'General Consultation',
-    status: 'waiting',
-    priority: 'normal',
-    registrationTime: '09:30 AM',
-    phone: '+1-555-0123',
-    email: 'john.doe@email.com',
-    address: '123 Main St, City, State 12345',
-    age: 35,
-    gender: 'male',
-    emergencyContact: 'Jane Doe',
-    emergencyPhone: '+1-555-0124',
-    medicalHistory: [
-      {
-        date: '2024-01-15',
-        diagnosis: 'Common Cold',
-        symptoms: 'Runny nose, mild fever',
-        medicines: [
-          { name: 'Paracetamol', dosage: '500mg', frequency: '3 times daily', duration: '5 days' },
-          { name: 'Cough Syrup', dosage: '10ml', frequency: '2 times daily', duration: '3 days' }
-        ],
-        attachments: ['blood_test_jan2024.pdf'],
-        notes: 'Patient responded well to treatment'
-      },
-      {
-        date: '2023-12-10',
-        diagnosis: 'Annual Checkup',
-        symptoms: 'Routine checkup',
-        medicines: [],
-        attachments: ['checkup_report_dec2023.pdf'],
-        notes: 'All vitals normal'
-      }
-    ]
-  },
-  {
-    _id: '2',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    tokenNo: 'TOK002',
-    appointmentType: 'Follow-up',
-    status: 'in-progress',
-    priority: 'urgent',
-    registrationTime: '10:15 AM',
-    phone: '+1-555-0125',
-    email: 'jane.smith@email.com',
-    address: '456 Oak Ave, City, State 12345',
-    age: 28,
-    gender: 'female',
-    emergencyContact: 'Bob Smith',
-    emergencyPhone: '+1-555-0126',
-    medicalHistory: [
-      {
-        date: '2024-01-10',
-        diagnosis: 'Hypertension',
-        symptoms: 'High blood pressure, headaches',
-        medicines: [
-          { name: 'Lisinopril', dosage: '10mg', frequency: '1 time daily', duration: 'Ongoing' }
-        ],
-        attachments: ['bp_monitoring_jan2024.pdf'],
-        notes: 'Monitor blood pressure daily'
-      }
-    ]
-  },
-  {
-    _id: '3',
-    firstName: 'Michael',
-    lastName: 'Johnson',
-    tokenNo: 'TOK003',
-    appointmentType: 'Emergency',
-    status: 'waiting',
-    priority: 'emergency',
-    registrationTime: '11:00 AM',
-    phone: '+1-555-0127',
-    email: 'michael.johnson@email.com',
-    address: '789 Pine St, City, State 12345',
-    age: 42,
-    gender: 'male',
-    emergencyContact: 'Sarah Johnson',
-    emergencyPhone: '+1-555-0128',
-    medicalHistory: []
-  }
-];
-
 const PatientManagementSystem = () => {
   const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -368,7 +279,7 @@ const PatientManagementSystem = () => {
                               {patient.tokenNo.slice(-3)}
                             </div>
                             <div className="font-semibold text-gray-900">
-                              {patient.firstName} {patient.lastName}
+                              {patient.fullName}
                             </div>
                           </div>
                           
@@ -428,7 +339,7 @@ const PatientManagementSystem = () => {
                 <div className="flex items-center space-x-3">
                   <User className="h-6 w-6 text-blue-600" />
                   <h2 className="text-xl font-semibold text-gray-900">
-                    {selectedPatient.firstName} {selectedPatient.lastName}
+                    {selectedPatient.fullName}
                   </h2>
                 </div>
                 <button

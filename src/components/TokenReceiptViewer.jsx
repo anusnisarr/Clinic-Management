@@ -251,7 +251,7 @@ const printReceipt = () => {
                   <User className="w-3 h-3 mr-1" /> Patient Information
                 </h4>
                 <div className="grid grid-cols-2 gap-1 text-[12px] leading-tight">
-                  <p><span className="font-semibold">Name:</span> {receiptData.patient.firstName} {receiptData.patient.lastName}</p>
+                  <p><span className="font-semibold">Name:</span> {receiptData.patient.fullName} </p>
                   <p><span className="font-semibold">Phone:</span> {receiptData.patient.phone}</p>
                   {receiptData.patient.age && <p><span className="font-semibold">Age:</span> {receiptData.patient.age}</p>}
                   {receiptData.patient.gender && <p><span className="font-semibold">Gender:</span> {receiptData.patient.gender}</p>}
