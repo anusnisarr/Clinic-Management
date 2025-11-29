@@ -105,8 +105,7 @@ const Patients = () => {
       setTodayVisits(todayVisits.data);
     } catch (error) {
       console.error(
-        `Error Getting Todays Patient : ${
-          error.response?.data || error.message
+        `Error Getting Todays Patient : ${error.response?.data || error.message
         }`
       );
     } finally {
@@ -373,9 +372,8 @@ const Patients = () => {
                         value={patientData.phone}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        className={`appearance-none pl-10 w-full p-3 border focus:outline-none rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.phone ? "border-red-500" : "border-gray-300"
-                        }`}
+                        className={`appearance-none pl-10 w-full p-3 border focus:outline-none rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? "border-red-500" : "border-gray-300"
+                          }`}
                         placeholder="Enter phone number"
                       />
                     </div>
@@ -396,7 +394,7 @@ const Patients = () => {
                               handleSuggestion(patient);
                             }}
                           >
-                            {patient.firstName} {patient.lastName} –{" "}
+                            {patient.fullName}  –{" "}
                             {patient.phone}
                             <button
                               className="cursor-pointer text-blue-600 font-semibold hover:text-white hover:bg-blue-600 active:bg-blue-700 px-4 py-1.5 rounded-md text-sm transition-colors duration-200 shadow-sm"
@@ -412,7 +410,7 @@ const Patients = () => {
                         ))}
                       </ul>
                     )}
-                  </div> 
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email
@@ -424,9 +422,8 @@ const Patients = () => {
                         name="email"
                         value={patientData.email}
                         onChange={handleInputChange}
-                        className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.email ? "border-red-500" : "border-gray-300"
-                        }`}
+                        className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email ? "border-red-500" : "border-gray-300"
+                          }`}
                         placeholder="Enter email address"
                       />
                     </div>
@@ -447,21 +444,40 @@ const Patients = () => {
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <input
                         type="text"
-                        name="firstName"
-                        value={patientData.firstName}
+                        name="fullName"
+                        value={patientData.fullName}
                         onChange={handleInputChange}
-                        className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.firstName
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        }`}
-                        placeholder="Enter first name"
+                        className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.fullName
+                          ? "border-red-500"
+                          : "border-gray-300"
+                          }`}
+                        placeholder="Enter full name"
                       />
                     </div>
-                    {errors.firstName && (
+                    {errors.fullName && (
                       <p className="text-red-500 text-sm mt-1">
-                        {errors.firstName}
+                        {errors.fullName}
                       </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Age
+                    </label>
+                    <div className="relative">
+                      <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="number"
+                        name="age"
+                        placeholder="Enter Age"
+                        value={patientData.age}
+                        onChange={handleInputChange}
+                        className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.age ? "border-red-500" : "border-gray-300"
+                          }`}
+                      />
+                    </div>
+                    {errors.age && (
+                      <p className="text-red-500 text-sm mt-1">{errors.age}</p>
                     )}
                   </div>
                 </div>
@@ -475,9 +491,8 @@ const Patients = () => {
                     {extraFieldsOpen ? "Hide Details" : "More Details"}
                   </span>
                   <svg
-                    className={`h-4 w-4 transform transition-transform duration-300 ${
-                      extraFieldsOpen ? "rotate-180" : ""
-                    }`}
+                    className={`h-4 w-4 transform transition-transform duration-300 ${extraFieldsOpen ? "rotate-180" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
@@ -491,10 +506,10 @@ const Patients = () => {
                   </svg>
                 </button>
 
+                {/* hidden fields */}
                 <div
-                  className={`overflow-hidden transition-all duration-500 ${
-                    extraFieldsOpen ? "max-h-[1200px] mt-4" : "max-h-0"
-                  }`}
+                  className={`overflow-hidden transition-all duration-500 ${extraFieldsOpen ? "max-h-[1200px] mt-4" : "max-h-0"
+                    }`}
                 >
                   {/* Address */}
                   <div className="mt-4">
@@ -514,32 +529,8 @@ const Patients = () => {
                     </div>
                   </div>
 
-                  {/* Age + Gender */}
+                  {/* Gender */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Age
-                      </label>
-                      <div className="relative">
-                        <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="number"
-                          name="age"
-                          placeholder="Enter Age"
-                          value={patientData.age}
-                          onChange={handleInputChange}
-                          className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.age ? "border-red-500" : "border-gray-300"
-                          }`}
-                        />
-                      </div>
-                      {errors.age && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.age}
-                        </p>
-                      )}
-                    </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Gender
@@ -548,9 +539,8 @@ const Patients = () => {
                         name="gender"
                         value={patientData.gender}
                         onChange={handleInputChange}
-                        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.gender ? "border-red-500" : "border-gray-300"
-                        }`}
+                        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.gender ? "border-red-500" : "border-gray-300"
+                          }`}
                       >
                         <option value="">Select gender</option>
                         <option value="male">Male</option>
@@ -645,8 +635,41 @@ const Patients = () => {
                     </div>
                   </div>
                 </div>
+
               </div>
             </div>
+
+            {/* KPI CARDS */}
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
+
+              <div className="rounded-xl p-4 shadow-sm bg-blue-50 border border-blue-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-blue-900">{todayVisits.length}</h3>
+                <p className="text-sm text-blue-700 mt-2">Total Patients Registered</p>
+              </div>
+
+              <div className="rounded-xl p-4 shadow-sm bg-yellow-50 border border-yellow-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-yellow-900">-</h3>
+                <p className="text-sm text-yellow-700 mt-2">Patients Waiting</p>
+              </div>
+
+              <div className="rounded-xl p-4 shadow-sm bg-purple-50 border border-purple-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-purple-900">-</h3>
+                <p className="text-sm text-purple-700 mt-2">In Consultation</p>
+              </div>
+
+              <div className="rounded-xl p-4 shadow-sm bg-green-50 border border-green-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-green-900">-</h3>
+                <p className="text-sm text-green-700 mt-2">Completed / Checked Out</p>
+              </div>
+
+              <div className="rounded-xl p-4 shadow-sm bg-red-50 border border-red-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-red-900">-</h3>
+                <p className="text-sm text-red-700 mt-2">No-Show / Cancelled</p>
+              </div>
+
+            </div>
+
             {/* Submit Button */}
             <div className="flex justify-end pt-6">
               <button
@@ -716,32 +739,30 @@ const Patients = () => {
                     onClick={() => {
                       setShowTokenReceipt({ isOpen: true, receiptData: visit });
                     }}
-                    className={`p-3 border rounded-lg ${
-                      visit.priority === "emergency"
-                        ? "border-red-200 bg-red-50"
-                        : visit?.priority === "urgent"
+                    className={`p-3 border rounded-lg ${visit.priority === "emergency"
+                      ? "border-red-200 bg-red-50"
+                      : visit?.priority === "urgent"
                         ? "border-yellow-200 bg-yellow-50"
                         : "border-gray-200 bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium text-gray-900">
                         #{visit?.tokenNo.slice(-3)}
                       </div>
                       <div
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          visit.priority === "emergency"
-                            ? "bg-red-100 text-red-800"
-                            : visit?.priority === "urgent"
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${visit.priority === "emergency"
+                          ? "bg-red-100 text-red-800"
+                          : visit?.priority === "urgent"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-green-100 text-green-800"
-                        }`}
+                          }`}
                       >
                         {visit?.status}
                       </div>
                     </div>
                     <div className="text-sm text-gray-700">
-                      {visit.patient?.firstName} {visit.patient?.lastName}
+                      {visit.patient?.fullName}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {visit?.appointmentType} • {visit?.registrationTime}
