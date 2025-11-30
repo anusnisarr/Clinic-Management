@@ -3,6 +3,7 @@ import 'dotenv/config'
 import connectDB from './config/db.js'
 import patientRouter from './routes/patient.routes.js';
 import visitRouter from './routes/visit.routes.js';
+import AuthRouter from './routes/auth.routes.js';
 import cors from 'cors';
 import http from 'http';
 
@@ -41,6 +42,7 @@ io.on("connection", (socket) => {
 
 app.use('/visit' , visitRouter)
 app.use('/patient' , patientRouter)
+app.use('/auth' , AuthRouter)
 // app.use('/api' , patientRouter)
 
 const startServer = async () => {

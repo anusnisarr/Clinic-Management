@@ -6,8 +6,8 @@ import Patients from './components/Patients';
 import Doctor from './components/Doctor';
 import VisitHistory from './pages/VisitHistory';
 import PatientList from './pages/PatientList';
-
-
+import Login from './pages/login';
+import SignUp from './pages/SignUp';
 
 const App = () => {
     return (
@@ -19,6 +19,8 @@ const App = () => {
                     <Route path="Doctors" element={<Doctor />} />
                     <Route path="VisitHistory" element={<VisitHistory />} />
                     <Route path="PatientList" element={<PatientList />} />
+                    <Route path="Login" element={<Login />} />
+                    <Route path="signup" element={<SignUp />} />
                 </Route>
             </Routes>
         </Router>
