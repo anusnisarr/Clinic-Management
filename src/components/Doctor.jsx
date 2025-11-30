@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 const PatientManagementSystem = () => {
+  const env = import.meta.env;
   const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [activeTab, setActiveTab] = useState('current');
@@ -25,7 +26,7 @@ const PatientManagementSystem = () => {
 
     const deleteAll = async ()=>{
     try {
-      const res = await axios.delete('http://localhost:3000/patient/Delete')
+      const res = await axios.delete('${env.VITE_BASE_PATH}/patient/Delete')
       console.log(res);
       
       setPatients([])
@@ -39,7 +40,7 @@ const PatientManagementSystem = () => {
   const hitApiTest = async () => {
     
     try {
-        // const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
+        // const todayPatient = await axios.get(`${env.VITE_BASE_PATH}/patient/todayPatient`)
 
         console.log('NOTHING SETUP')
     } catch (error) {
@@ -52,7 +53,7 @@ const PatientManagementSystem = () => {
   const todayPatient = async () => {
     
     try {
-        const todayPatient = await axios.get(`http://localhost:3000/patient/todayPatient`)
+        const todayPatient = await axios.get(`${env.VITE_BASE_PATH}/patient/todayVisits`)
         
         setPatients(todayPatient.data)
         console.log(`today patient data `, todayPatient.data)
@@ -67,7 +68,7 @@ const PatientManagementSystem = () => {
   // const getAllPatient = async () => {
     
   //   try {
-  //       const allPatient = await axios.get(`http://localhost:3000/patient/`)
+  //       const allPatient = await axios.get(`${env.VITE_BASE_PATH}/patient/`)
         
   //       setPatients(allPatient.data)
 
@@ -108,7 +109,7 @@ const PatientManagementSystem = () => {
       
       try {
         
-        const statusUpdated = await axios.patch(`http://localhost:3000/patient/update/${patientId}`, { status })
+        const statusUpdated = await axios.patch(`${env.VITE_BASE_PATH}/patient/update/${patientId}`, { status })
       
         console.log("statusUpdated" , statusUpdated.data);
         
@@ -161,7 +162,7 @@ const PatientManagementSystem = () => {
     // Add your save logic here
     setLoading(true)
     try {
-      const res = await axios.patch(`http://localhost:3000/patient/updateMedicalHistory/${selectedPatient._id}` ,
+      const res = await axios.patch(`${env.VITE_BASE_PATH}/patient/updateMedicalHistory/${selectedPatient._id}` ,
       currentVisit);
       
     } catch (error) {

@@ -14,6 +14,8 @@ import {
   Clock,
   UserPlus,
 } from "lucide-react";
+import { TextInputField } from "./inputFields.jsx";
+
 const env = import.meta.env;
 
 const Patients = () => {
@@ -171,6 +173,9 @@ const Patients = () => {
   const validateForm = () => {
     const newErrors = {};
 
+    if (patientData.email.trim())
+      newErrors.fullName = "Patient Name is required";
+
     if (!patientData.fullName.trim())
       newErrors.fullName = "Patient Name is required";
     if (!patientData.phone.trim()) newErrors.phone = "Phone number is required";
@@ -325,7 +330,7 @@ const Patients = () => {
         </div>
 
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow mb-3"
           onClick={deleteAll}
         >
           delete all data
@@ -356,33 +361,28 @@ const Patients = () => {
               )}
 
               {/* Personal Information */}
-              <div className="space-y-6">
+              <div className="space-y-4">
+                {/* Email + Phone */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="relative">
-                    {" "}
-                    {/* ⬅ Wrap input & suggestions in relative */}
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number *
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={patientData.phone}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`appearance-none pl-10 w-full p-3 border focus:outline-none rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? "border-red-500" : "border-gray-300"
-                          }`}
-                        placeholder="Enter phone number"
-                      />
-                    </div>
-                    {/* Error */}
-                    {errors.phone && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.phone}
-                      </p>
-                    )}
+                    <TextInputField
+                      labelText="Phone Number *"
+                      iconName="Phone"
+                      type="tel"
+                      name="phone"
+                      value={patientData.phone}
+                      onBlur={handleBlur}
+                      onChange={handleInputChange}
+                      placeholder="Enter phone number"
+                      errors={
+                        errors.email && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.phone}
+                          </p>
+                        )
+                      }
+                    />
+
                     {/* Suggestions */}
                     {suggestions.length > 0 && (
                       <ul className="absolute left-0 right-0 mt-1 z-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
@@ -394,8 +394,7 @@ const Patients = () => {
                               handleSuggestion(patient);
                             }}
                           >
-                            {patient.fullName}  –{" "}
-                            {patient.phone}
+                            {patient.fullName} – {patient.phone}
                             <button
                               className="cursor-pointer text-blue-600 font-semibold hover:text-white hover:bg-blue-600 active:bg-blue-700 px-4 py-1.5 rounded-md text-sm transition-colors duration-200 shadow-sm"
                               onClick={(e) => {
@@ -411,77 +410,61 @@ const Patients = () => {
                       </ul>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="email"
-                        name="email"
-                        value={patientData.email}
-                        onChange={handleInputChange}
-                        className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email ? "border-red-500" : "border-gray-300"
-                          }`}
-                        placeholder="Enter email address"
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
+                  <TextInputField
+                    labelText="Email"
+                    iconName="Mail"
+                    type="email"
+                    name="email"
+                    value={patientData.email}
+                    onChange={handleInputChange}
+                    placeholder="Enter email address"
+                    errors={
+                      errors.email && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.email}
+                        </p>
+                      )
+                    }
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="text"
-                        name="fullName"
-                        value={patientData.fullName}
-                        onChange={handleInputChange}
-                        className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.fullName
-                          ? "border-red-500"
-                          : "border-gray-300"
-                          }`}
-                        placeholder="Enter full name"
-                      />
-                    </div>
-                    {errors.fullName && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.fullName}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Age
-                    </label>
-                    <div className="relative">
-                      <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="number"
-                        name="age"
-                        placeholder="Enter Age"
-                        value={patientData.age}
-                        onChange={handleInputChange}
-                        className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.age ? "border-red-500" : "border-gray-300"
-                          }`}
-                      />
-                    </div>
-                    {errors.age && (
-                      <p className="text-red-500 text-sm mt-1">{errors.age}</p>
-                    )}
-                  </div>
+                  <TextInputField
+                    labelText="Full Name *"
+                    iconName="User"
+                    type="text"
+                    name="fullName"
+                    value={patientData.fullName}
+                    onChange={handleInputChange}
+                    placeholder="Enter full Name"
+                    errors={
+                      errors.fullName && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.fullName}
+                        </p>
+                      )
+                    }
+                  />
+
+                  <TextInputField
+                    labelText="Age"
+                    iconName="CalendarDays"
+                    type="number"
+                    name="age"
+                    value={patientData.age}
+                    onChange={handleInputChange}
+                    placeholder="Enter Age"
+                    errors={
+                      errors.age && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.age}
+                        </p>
+                      )
+                    }
+                  />
                 </div>
 
+                {/* show more fields button */}
                 <button
                   type="button"
                   onClick={() => setExtraFieldsOpen(!extraFieldsOpen)}
@@ -508,26 +491,19 @@ const Patients = () => {
 
                 {/* hidden fields */}
                 <div
-                  className={`overflow-hidden transition-all duration-500 ${extraFieldsOpen ? "max-h-[1200px] mt-4" : "max-h-0"
+                  className={`space-y-6 overflow-hidden transition-all duration-500 ${extraFieldsOpen ? "max-h-[1200px] mt-4" : "max-h-0"
                     }`}
                 >
                   {/* Address */}
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <textarea
-                        name="address"
-                        value={patientData.address}
-                        onChange={handleInputChange}
-                        rows="2"
-                        className="pl-10 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter full address"
-                      />
-                    </div>
-                  </div>
+                  <TextInputField
+                    labelText="Address"
+                    iconName="MapPin"
+                    type="textarea"
+                    name="address"
+                    value={patientData.address}
+                    onChange={handleInputChange}
+                    placeholder="Enter full address"
+                  />
 
                   {/* Gender */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -556,46 +532,29 @@ const Patients = () => {
                   </div>
 
                   {/* Emergency Contact */}
-                  <div className="mt-6">
-                    <h3 className="text-md font-medium text-gray-900 mb-4">
-                      Emergency Contact
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Contact Name
-                        </label>
-                        <input
-                          type="text"
-                          name="emergencyContact"
-                          value={patientData.emergencyContact}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Emergency contact name"
-                        />
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <TextInputField
+                      labelText="Emergency Contact Name"
+                      type="text"
+                      name="emergencyContact"
+                      value={patientData.emergencyContact}
+                      onChange={handleInputChange}
+                      placeholder="Enter Emergency contact name"
+                    />
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Contact Phone
-                        </label>
-                        <input
-                          type="tel"
-                          name="emergencyPhone"
-                          value={patientData.emergencyPhone}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Emergency contact phone"
-                        />
-                      </div>
-                    </div>
+                    <TextInputField
+                      labelText="Emergency Contact Phone"
+                      type="tel"
+                      name="emergencyPhone"
+                      value={patientData.emergencyPhone}
+                      onChange={handleInputChange}
+                      placeholder="Enter Emergency Contact Phone"
+                    />
+
                   </div>
 
                   {/* Appointment */}
                   <div className="mt-6">
-                    <h3 className="text-md font-medium text-gray-900 mb-4">
-                      Appointment Details
-                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -635,17 +594,19 @@ const Patients = () => {
                     </div>
                   </div>
                 </div>
-
               </div>
+              
             </div>
 
             {/* KPI CARDS */}
-
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-
               <div className="rounded-xl p-4 shadow-sm bg-blue-50 border border-blue-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-blue-900">{todayVisits.length}</h3>
-                <p className="text-sm text-blue-700 mt-2">Total Patients Registered</p>
+                <h3 className="text-3xl font-semibold text-blue-900">
+                  {todayVisits.length}
+                </h3>
+                <p className="text-sm text-blue-700 mt-2">
+                  Total Patients Registered
+                </p>
               </div>
 
               <div className="rounded-xl p-4 shadow-sm bg-yellow-50 border border-yellow-100 flex flex-col justify-between">
@@ -660,14 +621,15 @@ const Patients = () => {
 
               <div className="rounded-xl p-4 shadow-sm bg-green-50 border border-green-100 flex flex-col justify-between">
                 <h3 className="text-3xl font-semibold text-green-900">-</h3>
-                <p className="text-sm text-green-700 mt-2">Completed / Checked Out</p>
+                <p className="text-sm text-green-700 mt-2">
+                  Completed / Checked Out
+                </p>
               </div>
 
               <div className="rounded-xl p-4 shadow-sm bg-red-50 border border-red-100 flex flex-col justify-between">
                 <h3 className="text-3xl font-semibold text-red-900">-</h3>
                 <p className="text-sm text-red-700 mt-2">No-Show / Cancelled</p>
               </div>
-
             </div>
 
             {/* Submit Button */}
