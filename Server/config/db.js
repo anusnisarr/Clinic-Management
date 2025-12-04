@@ -7,7 +7,7 @@ const connectDB = async () => {
 
         // console.log('Database connected✅ ');
 
-        const connection = await mongoose.connect(process.env.MONGO_LOCAL_URI)
+        const connection = await mongoose.connect(`${process.env.MONGO_LOCAL_URI}/test`)
 
         console.log('lOCAL Database connected✅ ');
 

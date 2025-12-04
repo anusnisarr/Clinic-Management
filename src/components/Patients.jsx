@@ -27,6 +27,8 @@ const Patients = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [extraFieldsOpen, setExtraFieldsOpen] = useState(false);
 
+  const patientsWaiting = todayVisits.filter((patient) => patient.status === "waiting");
+
   const [showTokenReceipt, setShowTokenReceipt] = useState({
     isOpen: false,
     receiptData: {},
@@ -329,7 +331,43 @@ const Patients = () => {
           </div>
         </div>
 
-        <button
+        
+            {/* KPI CARDS */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+              <div className="rounded-xl p-4 shadow-sm bg-blue-50 border border-blue-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-blue-900">
+                  {todayVisits.length}
+                </h3>
+                <p className="text-sm text-blue-700 mt-2">
+                  Total Patients Registered
+                </p>
+              </div>
+
+              <div className="rounded-xl p-4 shadow-sm bg-yellow-50 border border-yellow-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-yellow-900">{patientsWaiting.length}</h3>
+                <p className="text-sm text-yellow-700 mt-2">Patients Waiting</p>
+              </div>
+
+              <div className="rounded-xl p-4 shadow-sm bg-purple-50 border border-purple-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-purple-900">-</h3>
+                <p className="text-sm text-purple-700 mt-2">In Consultation</p>
+              </div>
+
+              <div className="rounded-xl p-4 shadow-sm bg-green-50 border border-green-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-green-900">-</h3>
+                <p className="text-sm text-green-700 mt-2">
+                  Completed / Checked Out
+                </p>
+              </div>
+
+              <div className="rounded-xl p-4 shadow-sm bg-red-50 border border-red-100 flex flex-col justify-between">
+                <h3 className="text-3xl font-semibold text-red-900">-</h3>
+                <p className="text-sm text-red-700 mt-2">No-Show / Cancelled</p>
+              </div>
+            </div>
+
+
+        {/* <button
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow mb-3"
           onClick={deleteAll}
         >
@@ -341,7 +379,7 @@ const Patients = () => {
           onClick={runFunction}
         >
           Run Function
-        </button>
+        </button> */}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-screen">
           {/* Registration Form */}
@@ -594,41 +632,6 @@ const Patients = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-              
-            </div>
-
-            {/* KPI CARDS */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-              <div className="rounded-xl p-4 shadow-sm bg-blue-50 border border-blue-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-blue-900">
-                  {todayVisits.length}
-                </h3>
-                <p className="text-sm text-blue-700 mt-2">
-                  Total Patients Registered
-                </p>
-              </div>
-
-              <div className="rounded-xl p-4 shadow-sm bg-yellow-50 border border-yellow-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-yellow-900">-</h3>
-                <p className="text-sm text-yellow-700 mt-2">Patients Waiting</p>
-              </div>
-
-              <div className="rounded-xl p-4 shadow-sm bg-purple-50 border border-purple-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-purple-900">-</h3>
-                <p className="text-sm text-purple-700 mt-2">In Consultation</p>
-              </div>
-
-              <div className="rounded-xl p-4 shadow-sm bg-green-50 border border-green-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-green-900">-</h3>
-                <p className="text-sm text-green-700 mt-2">
-                  Completed / Checked Out
-                </p>
-              </div>
-
-              <div className="rounded-xl p-4 shadow-sm bg-red-50 border border-red-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-red-900">-</h3>
-                <p className="text-sm text-red-700 mt-2">No-Show / Cancelled</p>
               </div>
             </div>
 
