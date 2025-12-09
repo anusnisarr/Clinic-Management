@@ -4,9 +4,10 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { Link } from 'react-router-dom';
 import clsx from "clsx"; // optional: for conditional classnames
+const env = import.meta.env
 
 // simple axios helper (replace baseURL with your env var)
-const api = axios.create({ baseURL: import.meta.env.VITE_BASE_PATH || "" });
+const API = axios.create({ baseURL: `${env.VITE_BASE_PATH}/auth` || "" });
 
 export default function Login({ onSuccess }) {
   const [form, setForm] = useState({ email: "", password: "", remember: false });
@@ -32,7 +33,7 @@ export default function Login({ onSuccess }) {
     try {
       setLoading(true);
       // replace with your auth endpoint
-      const res = await api.post("/auth/login", {
+      const res = await API.post(`/login`, {
         email: form.email,
         password: form.password,
         remember: form.remember,
