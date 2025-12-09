@@ -30,4 +30,10 @@ export default [
       ],
     },
   },
+  {
+  "env": {
+    "node": true, 
+    "browser": true
+  }
+}
 ]
