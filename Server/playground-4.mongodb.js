@@ -2,7 +2,7 @@
 // Use Ctrl+Space inside a snippet or a string literal to trigger completions.
 
 // The current database to use.
-use("test");
+use("db_clinic_managment");
 
 const patientData =
     [
@@ -1214,7 +1214,7 @@ const patientData =
 
     ]
 
-    const transformedPatients = patientData.map(p => {
+const transformedPatients = patientData.map(p => {
   const { firstName, lastName, ...rest } = p; // extract first and last
   return {
     fullName: `${firstName} ${lastName}`, // new field
@@ -1223,5 +1223,6 @@ const patientData =
 });
 
 // Find a document in a collection.
-db.getCollection("patients").insertMany(transformedPatients);
-// db.getCollection("patients").deleteMany(patientData);
+db.getCollection("patientvisits").deleteMany({});
+// db.getCollection("patients").insertMany(transformedPatients);
+// db.getCollection("patients").find();

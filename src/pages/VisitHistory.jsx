@@ -8,7 +8,7 @@ export default function VisitHistory() {
   const [visitData, setVisitData] = useState({ rows: [], total: 0 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 20 });
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [search, setSearch] = useState("");
   const requestIdRef = useRef(null);
 

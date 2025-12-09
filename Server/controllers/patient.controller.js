@@ -17,7 +17,6 @@ export const getTodayVisit = async (req, res) => {
         }).populate("patient");
 
         return res.status(200).json(getTodayVisits);
-        
 
     } catch (err) {
         console.error("getTodayPatients error:", err.message);
@@ -53,7 +52,7 @@ export const searchPatientByPhone = async (req, res) => {
 
 export const getAllVisits = async (req, res) => {
 
-    const  {page = 1, limit= 10 , columnsName , search} = req.query   
+    const  {page = 1, limit= 50 , columnsName , search} = req.query   
 
     const filter = buildSearchQuery(search);
 
@@ -171,6 +170,23 @@ export const updatePatientInfo = async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
+
+}
+
+export const updateVisitDetails = async (req, res) => {
+    const { id , status } = req.query
+    
+    console.log("status" , status , "id" , id);
+    
+
+    // try {
+    //     const updatedPatient = await Patient.findByIdAndUpdate(id, patientData  , {new: true})
+
+    //     res.status(201).json(updatedPatient);
+
+    // } catch (error) {
+    //     res.status(400).json({ error: error.message });
+    // }
 
 }
 

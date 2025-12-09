@@ -22,13 +22,14 @@ export default function Navigation() {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const navigationItems = [
     { icon: Database, label: 'Patient', to:"/Patients" },
-    { icon: FileText, label: 'Doctors', to:"/Doctors" },
-    { icon: Paperclip, label: 'VisitHistory' , to:"/VisitHistory"},
-    { icon: Play, label: 'Patient List', to:"/PatientList"}
+    { icon: FileText, label: 'Doctor Screen', to:"/DoctorScreen" },
+    { icon: Paperclip, label: 'Visit History' , to:"/VisitHistory"},
+    { icon: Play, label: 'Patient List', to:"/PatientList"},
   ];
 
   const bottomNavigationItems = [
-    { icon: Bell, label: 'Notifications' },
+    { icon: Bell, label: 'Notifications'},
+    { icon: Grid3x3, label: 'Guide' , to:"/Guide"},
     { icon: Grid3x3, label: 'Apps' },
     { icon: Webhook, label: 'Webhooks' },
     { icon: Settings, label: 'Project Settings' },
