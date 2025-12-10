@@ -29,16 +29,24 @@ export default function Login({ onSuccess }) {
   const handleSubmit = async (ev) => {
     ev?.preventDefault();
     setServerError("");
+
     if (!validate()) return;
+
     try {
+
       setLoading(true);
-      // replace with your auth endpoint
-      const res = await API.post(`/login`, {
+
+      const res = await API.post("/login", {
         email: form.email,
         password: form.password,
-        remember: form.remember,
+        remember: form.remember
+      }, {
+        withCredentials: true 
       });
-      // example: res.data = { token, user }
+
+      
+      localStorage.setItem("accessToken", res.data.accessToken);
+
       onSuccess?.(res.data);
     } catch (err) {
       setServerError(err.response?.data?.message || "Login failed. Try again.");
@@ -63,14 +71,14 @@ export default function Login({ onSuccess }) {
           <label className="block">
             <span className="text-sm text-gray-600">Email</span>
             <div className={clsx(
-                "mt-1 relative rounded-lg border px-3 py-2 flex items-center",
-                errors.email ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"
-              )}>
+              "mt-1 relative rounded-lg border px-3 py-2 flex items-center",
+              errors.email ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"
+            )}>
               <Mail className="h-4 w-4 text-gray-400 mr-2" />
               <input
                 type="email"
                 value={form.email}
-                onChange={(e) => { setForm({ ...form, email: e.target.value }); if (errors.email) setErrors(prev => ({...prev, email: "" })); }}
+                onChange={(e) => { setForm({ ...form, email: e.target.value }); if (errors.email) setErrors(prev => ({ ...prev, email: "" })); }}
                 placeholder="you@clinic.com"
                 className="flex-1 outline-none text-sm"
                 aria-label="Email"
@@ -82,14 +90,14 @@ export default function Login({ onSuccess }) {
           <label className="block">
             <span className="text-sm text-gray-600">Password</span>
             <div className={clsx(
-                "mt-1 relative rounded-lg border px-3 py-2 flex items-center",
-                errors.password ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"
-              )}>
+              "mt-1 relative rounded-lg border px-3 py-2 flex items-center",
+              errors.password ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"
+            )}>
               <Lock className="h-4 w-4 text-gray-400 mr-2" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={form.password}
-                onChange={(e) => { setForm({ ...form, password: e.target.value }); if (errors.password) setErrors(prev => ({...prev, password: "" })); }}
+                onChange={(e) => { setForm({ ...form, password: e.target.value }); if (errors.password) setErrors(prev => ({ ...prev, password: "" })); }}
                 placeholder="Your password"
                 className="flex-1 outline-none text-sm"
                 aria-label="Password"

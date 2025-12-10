@@ -11,14 +11,15 @@ import { Server } from "socket.io";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173", // your frontend URL
+  credentials: true               // must allow credentials
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 const server = http.createServer(app);
-
 
 const io = new Server(server, {
   cors: { origin: '*' }

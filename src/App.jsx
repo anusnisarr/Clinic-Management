@@ -14,6 +14,8 @@ const App = () => {
     return (
         <Router>
             <Routes>
+                    <Route path="Login" element={<Login />} />
+                    <Route path="signup" element={<SignUp />} />
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Patients />} />
                     <Route path="Patients" element={<Patients />} />
@@ -21,8 +23,6 @@ const App = () => {
                     <Route path="VisitHistory" element={<VisitHistory />} />
                     <Route path="PatientList" element={<PatientList />} />
                     <Route path="Guide" element={<DataTableGuide />} />
-                    <Route path="Login" element={<Login />} />
-                    <Route path="signup" element={<SignUp />} />
                 </Route>
             </Routes>
         </Router>

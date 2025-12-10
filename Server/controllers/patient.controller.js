@@ -4,6 +4,8 @@ import {buildSearchQuery} from "../utils/buildSearchQuery.js";
 
 export const getTodayVisit = async (req, res) => {
 
+    console.log("API req" , req.headers);
+    
     try {
 
         const today = new Date();
