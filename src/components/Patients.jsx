@@ -100,11 +100,16 @@ const Patients = () => {
   };
 
   const getTodayVisits = async () => {
+    const accessToken = localStorage.getItem("accessToken")
     try {
       setLoading(true);
+        
+
       const todayVisits = await axios.get(
-        `${env.VITE_BASE_PATH}/visit/todayVisits`
-      );
+        `${env.VITE_BASE_PATH}/visit/todayVisits` , {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${accessToken}` }
+          });
 
       setTodayVisits(todayVisits.data);
     } catch (error) {

@@ -9,6 +9,7 @@ import PatientList from './pages/PatientList';
 import Login from './pages/login';
 import SignUp from './pages/SignUp';
 import DataTableGuide from './pages/Guide';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
     return (
@@ -16,8 +17,8 @@ const App = () => {
             <Routes>
                     <Route path="Login" element={<Login />} />
                     <Route path="signup" element={<SignUp />} />
-                <Route path="/" element={<Layout />}>
-                    <Route index element={<Patients />} />
+                <Route path="/" element={<ProtectedRoute><Layout />  </ ProtectedRoute>}>
+                    <Route index element={ <Patients  />} />
                     <Route path="Patients" element={<Patients />} />
                     <Route path="DoctorScreen" element={<DoctorScreen />} />
                     <Route path="VisitHistory" element={<VisitHistory />} />

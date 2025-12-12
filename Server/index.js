@@ -5,6 +5,8 @@ import patientRouter from './routes/patient.routes.js';
 import visitRouter from './routes/visit.routes.js';
 import AuthRouter from './routes/auth.routes.js';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
+
 import http from 'http';
 
 import { Server } from "socket.io";
@@ -16,13 +18,17 @@ app.use(cors({
   credentials: true               // must allow credentials
 }));
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: '*' }
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true
+  }
 });
 
 io.on("connection", (socket) => {
