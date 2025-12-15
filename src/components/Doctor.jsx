@@ -12,6 +12,7 @@ export default function PatientManagement() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [search, setSearch] = useState("");
   const [selectedRow, setSelectedRow] = useState(null);  
+  const env = import.meta.env;
 
   // Your existing fetchData function
   useEffect(() => {

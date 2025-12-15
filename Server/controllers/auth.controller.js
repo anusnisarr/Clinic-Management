@@ -2,13 +2,59 @@
 import User from "../models/user.models.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto"
 
 const generateAccessToken = (user) => {
-  return jwt.sign(user, process.env.JWT_SECRET, { expiresIn: "15m" });
+  return jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: "15m" });
 };
 
 const generateRefreshToken = (user) => {
   return jwt.sign(user, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+};
+
+const hashRefreshToken = (token) => {
+  return crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+};
+
+export const refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken)
+      return res.status(401).json({ message: "No refresh token" });
+
+    const hashedRefreshToken = crypto
+    .createHash("sha256")
+    .update(refreshToken)
+    .digest("hex");
+    
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    const user = await User.findById(decoded.id).select("+refreshToken");
+    if (!user) return res.status(401).json({ message: "User not found" });
+
+    if ( user.refreshToken !== hashedRefreshToken ) {
+      return res.status(403).json({ message: "Token mismatch" });
+    }
+
+    const newAccessToken = generateAccessToken({ id: user._id });
+
+    res.json({
+      message: "Login successful",
+      accessToken: newAccessToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+
+  } catch (err) {
+    res.status(403).json({ error: err , message: "Invalid refresh token" });
+  }
 };
 
 export const register = async (req, res) => {
@@ -26,13 +72,25 @@ export const register = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
+    const refreshToken = generateRefreshToken({ id: user._id });
+    const accessToken = generateAccessToken({ id: user._id });
+
+
+    const hashedToken = hashRefreshToken(refreshToken);
+
     const user = await User.create({
       name,
       email,
       password: hashed,
+      refreshToken: hashedToken
     });
 
-    const token = generateRefreshToken({ id: user._id });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
 
     res.status(201).json({
       message: "Account created successfully",
@@ -41,8 +99,9 @@ export const register = async (req, res) => {
         name: user.name,
         email: user.email,
       },
-      token,
+      accessToken,
     });
+
   } catch (err) {
     console.error("REGISTER ERROR:", err);
     res.status(500).json({ message: "Server error while registering" });
@@ -69,12 +128,22 @@ export const login = async (req, res) => {
 
     const accessToken = generateAccessToken({ id: user._id });
     const refreshToken = generateRefreshToken({ id: user._id });
+
+    user.refreshToken = hashRefreshToken(refreshToken);
+    await user.save();
   
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 0 * 0 * 15 * 60 * 1000 
     });
 
     res.json({

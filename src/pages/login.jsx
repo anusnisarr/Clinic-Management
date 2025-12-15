@@ -5,6 +5,7 @@ import axios from "axios";
 import { Link } from 'react-router-dom';
 import clsx from "clsx"; // optional: for conditional classnames
 const env = import.meta.env
+import { useNavigate } from 'react-router-dom';
 
 // simple axios helper (replace baseURL with your env var)
 const API = axios.create({ baseURL: `${env.VITE_BASE_PATH}/auth` || "" });
@@ -15,6 +16,8 @@ export default function Login({ onSuccess }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
+  const navigate = useNavigate();
+
 
   const validate = () => {
     const e = {};
@@ -48,6 +51,7 @@ export default function Login({ onSuccess }) {
       localStorage.setItem("accessToken", res.data.accessToken);
 
       onSuccess?.(res.data);
+      navigate("/", { replace: true });
     } catch (err) {
       setServerError(err.response?.data?.message || "Login failed. Try again.");
     } finally {

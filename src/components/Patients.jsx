@@ -100,7 +100,9 @@ const Patients = () => {
   };
 
   const getTodayVisits = async () => {
-    const accessToken = localStorage.getItem("accessToken")
+
+  const accessToken = localStorage.getItem("accessToken")
+    
     try {
       setLoading(true);
         

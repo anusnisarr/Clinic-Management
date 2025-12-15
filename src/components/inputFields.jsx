@@ -14,7 +14,7 @@ export const TextInputField = ({
   const Icon = ImportIcons[iconName ? iconName : ""];
 
   return (
-    <div class>
+    <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
         {labelText}
       </label>
