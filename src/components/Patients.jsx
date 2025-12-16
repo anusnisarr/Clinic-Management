@@ -141,7 +141,6 @@ const Patients = () => {
     }
   };
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -178,7 +177,6 @@ const Patients = () => {
     }
   };
 
-  // Validate form
   const validateForm = () => {
     const newErrors = {};
 
@@ -210,7 +208,6 @@ const Patients = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle edit patient
   const updatePatientInfo = (patient) => {
     setEditedPatientId(patient._id);
 
@@ -226,7 +223,6 @@ const Patients = () => {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
