@@ -10,7 +10,7 @@ import Login from './pages/login';
 import SignUp from './pages/SignUp';
 import DataTableGuide from './pages/Guide';
 import { AuthProvider } from './context/AuthProvider';
-import ProtectedRoute from './components/protectedRoute';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
     return (
