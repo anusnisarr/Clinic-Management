@@ -15,25 +15,23 @@ import ProtectedRoute from './components/ProtectedRoute';
 const App = () => {
     return (
         <Router>
-            <Routes>
-                <Route path="Login" element={<Login />} />
-                <Route path="signup" element={<SignUp />} />
-                <AuthProvider>
-                    <Routes>
-                        <Route element={<ProtectedRoute />}>
-                            <Route path="/" element={<Layout />}>
-                                <Route index element={<Patients />} />
-                                <Route path="Patients" element={<Patients />} />
-                                <Route path="DoctorScreen" element={<DoctorScreen />} />
-                                <Route path="VisitHistory" element={<VisitHistory />} />
-                                <Route path="PatientList" element={<PatientList />} />
-                                <Route path="Guide" element={<DataTableGuide />} />
-                            </Route>
+            <AuthProvider>
+                <Routes>
+                    <Route path="Login" element={<Login />} />
+                    <Route path="signup" element={<SignUp />} />
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/" element={<Layout />}>
+                            <Route index element={<Patients />} />
+                            <Route path="Patients" element={<Patients />} />
+                            <Route path="DoctorScreen" element={<DoctorScreen />} />
+                            <Route path="VisitHistory" element={<VisitHistory />} />
+                            <Route path="PatientList" element={<PatientList />} />
+                            <Route path="Guide" element={<DataTableGuide />} />
                         </Route>
-                    </Routes>
-                </ AuthProvider>
-            </Routes>
-        </Router >
+                    </Route>
+                </Routes>
+            </ AuthProvider>
+        </Router>
     );
 };
 
