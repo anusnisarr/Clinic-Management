@@ -15,10 +15,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 const App = () => {
     return (
         <Router>
+            <Route path="Login" element={<Login />} />
+            <Route path="signup" element={<SignUp />} />
             <AuthProvider>
                 <Routes>
-                    <Route path="Login" element={<Login />} />
-                    <Route path="signup" element={<SignUp />} />
                     <Route element={<ProtectedRoute />}>
                         <Route path="/" element={<Layout />}>
                             <Route index element={<Patients />} />
