@@ -15,23 +15,25 @@ import ProtectedRoute from './components/ProtectedRoute';
 const App = () => {
     return (
         <Router>
-            <Route path="Login" element={<Login />} />
-            <Route path="signup" element={<SignUp />} />
-            <AuthProvider>
-                <Routes>
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/" element={<Layout />}>
-                            <Route index element={<Patients />} />
-                            <Route path="Patients" element={<Patients />} />
-                            <Route path="DoctorScreen" element={<DoctorScreen />} />
-                            <Route path="VisitHistory" element={<VisitHistory />} />
-                            <Route path="PatientList" element={<PatientList />} />
-                            <Route path="Guide" element={<DataTableGuide />} />
+            <Routes>
+                <Route path="Login" element={<Login />} />
+                <Route path="signup" element={<SignUp />} />
+                <AuthProvider>
+                    <Routes>
+                        <Route element={<ProtectedRoute />}>
+                            <Route path="/" element={<Layout />}>
+                                <Route index element={<Patients />} />
+                                <Route path="Patients" element={<Patients />} />
+                                <Route path="DoctorScreen" element={<DoctorScreen />} />
+                                <Route path="VisitHistory" element={<VisitHistory />} />
+                                <Route path="PatientList" element={<PatientList />} />
+                                <Route path="Guide" element={<DataTableGuide />} />
+                            </Route>
                         </Route>
-                    </Route>
-                </Routes>
-            </ AuthProvider>
-        </Router>
+                    </Routes>
+                </ AuthProvider>
+            </Routes>
+        </Router >
     );
 };
 
