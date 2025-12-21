@@ -15,10 +15,12 @@ import {
   UserPlus,
 } from "lucide-react";
 import { TextInputField } from "./inputFields.jsx";
-
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthProvider";
 const env = import.meta.env;
 
 const Patients = () => {
+  const { accessToken } = useContext(AuthContext)  
   const [editedPatientId, setEditedPatientId] = useState("");
   const [todayVisits, setTodayVisits] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -100,8 +102,6 @@ const Patients = () => {
   };
 
   const getTodayVisits = async () => {
-
-  const accessToken = localStorage.getItem("accessToken")
     
     try {
       setLoading(true);

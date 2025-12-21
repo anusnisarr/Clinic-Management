@@ -1,16 +1,18 @@
 // Login.jsx
-import React, { useState } from "react";
+import { useState , useContext } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { Link } from 'react-router-dom';
 import clsx from "clsx"; // optional: for conditional classnames
 const env = import.meta.env
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from "../context/AuthProvider";
 
 // simple axios helper (replace baseURL with your env var)
 const API = axios.create({ baseURL: `${env.VITE_BASE_PATH}/auth` || "" });
 
 export default function Login({ onSuccess }) {
+  const { setAccessToken , setUser } = useContext(AuthContext)
   const [form, setForm] = useState({ email: "", password: "", remember: false });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -36,9 +38,7 @@ export default function Login({ onSuccess }) {
     if (!validate()) return;
 
     try {
-
       setLoading(true);
-
       const res = await API.post("/login", {
         email: form.email,
         password: form.password,
@@ -47,9 +47,9 @@ export default function Login({ onSuccess }) {
         withCredentials: true 
       });
 
-      
-      localStorage.setItem("accessToken", res.data.accessToken);
-
+      setAccessToken(res.data.accessToken)      
+      setUser(res.data.user)     
+    
       onSuccess?.(res.data);
       navigate("/", { replace: true });
     } catch (err) {

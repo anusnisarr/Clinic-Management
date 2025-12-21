@@ -20,13 +20,12 @@ export function AuthProvider({ children }) {
         {},
         { withCredentials: true }
       );
-      console.log("response", res)
       setAccessToken(res.data.accessToken);
       setUser(res.data.user);
     } catch (err) {    
       setAccessToken(null);
       setUser(null);
-      if (!PUBLIC_ROUTES.includes(Location.pathname)) {
+      if (!PUBLIC_ROUTES.includes(location.pathname)) {
         navigate("/login", { replace: true });
       }
     } finally {
@@ -35,6 +34,12 @@ export function AuthProvider({ children }) {
   }, [BASE_URL, navigate, location.pathname]);
   
   useEffect(() => {
+    
+    if (accessToken){
+      setLoading(false);
+      return;
+    }
+
     if (PUBLIC_ROUTES.includes(location.pathname)) {
       setLoading(false);
       return;
