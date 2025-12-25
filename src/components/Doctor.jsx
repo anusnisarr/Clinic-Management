@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import CustomDataTable from "../components/customDataTable";
 import { Chip, Typography } from "@mui/material";
-import { getVisits } from "../api/visitService";
+import { getVisits } from "../api/services/visitService";
 
 export default function PatientManagement() {
   const [visitData, setVisitData] = useState({ rows: [], total: 0 });
@@ -25,14 +25,11 @@ export default function PatientManagement() {
       const data = await getVisits(search, page + 1, pageSize);
       setVisitData({ rows: data.data, total: data.total });
     } catch (err) {
-      setError(err.message);
+      setError(err.response.data);
     } finally {
       setIsLoading(false);
     }
   };
-
-  console.log(visitData.rows);
-  
 
   // Define columns with custom rendering
   const columns = [

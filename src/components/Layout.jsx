@@ -1,7 +1,11 @@
+import { useContext } from 'react';
 import Navigation from './Navigation';
 import { Outlet } from 'react-router-dom';
+// import UnauthorizedPage from '../pages/Unauthorized';
+
 
 const Layout = () => {
+
   return (
     <div style={{
       display: 'flex',
@@ -13,7 +17,7 @@ const Layout = () => {
           flex: 1,
           overflowY: 'auto'
       }}>
-          <Outlet /> {/* This will render the current route's page */}
+       <Outlet /> 
       </div>
     </div>
   );

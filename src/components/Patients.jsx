@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
-import PatientFileModal from "./PatientModal";
+// import PatientFileModal from "./PatientModal";
+import { getTodayVisits , createNewVisitAndPatient , createVisit } from "../api/services/visitService";
+import { getPatientByPhone, updatedPatientDetails } from "../api/services/patientService";
 import TokenReceipt from "./TokenReceiptViewer";
-import axios from "axios";
 import { socket } from "../socket.js";
 import {
   CalendarDays,
@@ -15,13 +16,10 @@ import {
   UserPlus,
 } from "lucide-react";
 import { TextInputField } from "./inputFields.jsx";
-import { useContext } from "react";
-import { AuthContext } from "../context/AuthProvider";
 const env = import.meta.env;
 
 const Patients = () => {
-  const { accessToken } = useContext(AuthContext)  
-  const [editedPatientId, setEditedPatientId] = useState("");
+  const [editPatientId, setEditPatientId] = useState("");
   const [todayVisits, setTodayVisits] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [errors, setErrors] = useState({});
@@ -29,21 +27,18 @@ const Patients = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [extraFieldsOpen, setExtraFieldsOpen] = useState(false);
 
-  const patientsWaiting = todayVisits.filter((patient) => patient.status === "waiting");
+  const patientsWaiting = todayVisits?.filter((patient) => patient.status === "waiting");
 
   const [showTokenReceipt, setShowTokenReceipt] = useState({
     isOpen: false,
     receiptData: {},
   });
 
-  const [showSuccess, setShowSuccess] = useState({
-    status: false,
-    message: "",
-  });
+  const [showMessage, setShowMessage] = useState(null);
 
   const currentToken = useMemo(() => {
     if (loading) return;
-    return (todayVisits.length + 1).toString().padStart(3, "0");
+    return (todayVisits?.length + 1).toString().padStart(3, "0");
   }, [todayVisits, loading]);
 
   const [patientData, setPatientData] = useState({
@@ -68,11 +63,8 @@ const Patients = () => {
     priority: "Normal",
   });
 
-  const handleBlur = () => setSuggestions([]);
-
   useEffect(() => {
-    getTodayVisits();
-    // deleteAll()
+    todayVisitsData();
   }, []);
 
   socket.on("status-updated", (data) => {
@@ -86,51 +78,40 @@ const Patients = () => {
     );
   });
 
-  const deleteAll = async () => {
-    try {
-      const res = await axios.delete(`${env.VITE_BASE_PATH}/visit/Delete`);
-    } catch (error) {
-      console.error(error.response?.data || error.message);
-    }
-  };
+  // const deleteAll = async () => {
+  //   try {
+  //     const res = await axios.delete(`${env.VITE_BASE_PATH}/visit/Delete`);
+  //   } catch (error) {
+  //     console.error(error.response?.data || error.message);
+  //   }
+  // };
 
-  const runFunction = async () => {
-    console.log("Today Patients", todayVisits);
-    console.log("currently Selected Patient", selectedPatient);
-    console.log("CcurrentToken", currentToken);
-    console.log("show token data", showTokenReceipt);
-  };
+  // const runFunction = async () => {
+  //   console.log("Today Patients", todayVisits);
+  //   console.log("currently Selected Patient", selectedPatient);
+  //   console.log("CcurrentToken", currentToken);
+  //   console.log("show token data", showTokenReceipt);
+  // };
 
-  const getTodayVisits = async () => {
-    
+  const todayVisitsData = async () => {
+
     try {
       setLoading(true);
-        
+      const res = await getTodayVisits()
 
-      const todayVisits = await axios.get(
-        `${env.VITE_BASE_PATH}/visit/todayVisits` , {
-          withCredentials: true,
-          headers: { Authorization: `Bearer ${accessToken}` }
-          });
-
-      setTodayVisits(todayVisits.data);
+      setTodayVisits(res);
     } catch (error) {
-      console.error(
-        `Error Getting Todays Patient : ${error.response?.data || error.message
-        }`
-      );
+      console.error(`Error Getting Todays Patient : ${error.response?.data || error.message}`)
     } finally {
       setLoading(false);
     }
   };
 
-  const getPatientByPhone = async (phone) => {
+  const findPatientByPhone = async (phone) => {
     try {
-      const res = await axios.get(
-        `${env.VITE_BASE_PATH}/patient/search?phone=${phone}`
-      );
 
-      setSuggestions(res.data);
+      const res = await getPatientByPhone(phone)
+      setSuggestions(res);
     } catch (error) {
       console.error(error.response?.data || error.message);
 
@@ -146,10 +127,9 @@ const Patients = () => {
 
     if (name === "age" && value < 0) return;
 
-    if (name === "phone" && value.length >= 4) getPatientByPhone(value);
+    if (name === "phone" && value.length >= 4) findPatientByPhone(value);
 
-    if ((name === "phone" && value === "") || value.length < 4)
-      setSuggestions([]);
+    if ((name === "phone" && value === "") || value.length < 4) setSuggestions([]);
 
     const patientDataKeys = Object.keys(patientData);
     const visitDataKeys = Object.keys(visitData);
@@ -168,7 +148,6 @@ const Patients = () => {
       }));
     }
 
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -180,37 +159,37 @@ const Patients = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (patientData.email.trim())
-      newErrors.fullName = "Patient Name is required";
+    if (!patientData.fullName?.trim()) newErrors.fullName = "Patient Name is required";
 
-    if (!patientData.fullName.trim())
-      newErrors.fullName = "Patient Name is required";
-    if (!patientData.phone.trim()) newErrors.phone = "Phone number is required";
-    // if (!patientData.age) newErrors.age = 'Age is required';
-    // if (!patientData.gender) newErrors.gender = 'Gender is required';
-
-    // Phone validation
-    if (
-      patientData.phone &&
-      !/^\d{11,14}$/.test(patientData.phone.replace(/\D/g, ""))
-    ) {
-      newErrors.phone = "Please enter a valid phone number";
+    if (!patientData.phone?.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else {
+      const cleanPhone = patientData.phone.replace(/\D/g, "");
+      if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+        newErrors.phone = "Phone number must be between 10-15 digits";
+      }
     }
 
-    // Email validation
-    if (patientData.email && !/\S+@\S+\.\S+/.test(patientData.email)) {
-      newErrors.email = "Please enter a valid email address";
+    if (!patientData.email?.trim()) {
+      newErrors.email = "Email is required";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(patientData.email)) {
+        newErrors.email = "Please enter a valid email address";
+      }
     }
+    
+    setErrors(newErrors);  
+    
+    const isformValid =  Object.keys(newErrors).length === 0;
 
-    setErrors(newErrors);
-    if (newErrors) console.error(newErrors);
+    if (!isformValid) console.error(newErrors);
 
-    return Object.keys(newErrors).length === 0;
+    return isformValid
+
   };
 
-  const updatePatientInfo = (patient) => {
-    setEditedPatientId(patient._id);
-
+  const populateDataOnPatientEdit = (patient) => {
     setPatientData({
       fullName: patient.fullName || "",
       phone: patient.phone || "",
@@ -226,40 +205,39 @@ const Patients = () => {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    if (editedPatientId) {
+
+    if (editPatientId) {
+
+      const payload = { id:editPatientId , patientData }
       try {
-        const updatedPatient = await axios.patch(
-          `${env.VITE_BASE_PATH}/patient/update/${editedPatientId}`,
-          { ...patientData }
-        );
+        const updatedPatient = await updatedPatientDetails(payload)
+        setShowMessage("Patient Updated Successfully!")
+
       } catch (error) {
         console.error("❌ Error:", error.response?.data || error.message);
+        setShowMessage(null)
       }
     } else {
+
       try {
-        const patient = await axios.post(
-          `${env.VITE_BASE_PATH}/visit/registerPatientAndVisit`,
-          {
-            patientData: { ...patientData },
-            visitData: { ...visitData, tokenNo: currentToken },
-          }
-        );
+        const payload = {
+          patientData: { ...patientData },
+          visitData: { ...visitData, tokenNo: currentToken }
+        };
 
-        const PatientVisit = patient.data;
+        const PatientVisit = await createNewVisitAndPatient(payload);
 
-        setTodayVisits((prev) => [...prev, PatientVisit]);
-        setShowSuccess({
-          status: true,
-          message: `Patient registered successfully with token #${PatientVisit.tokenNo}`,
-        });
-        setTimeout(() => setShowSuccess({ status: false, message: `` }), 3000);
         setShowTokenReceipt({ isOpen: true, receiptData: PatientVisit });
+        setTodayVisits((prev) => [...prev, PatientVisit]);
+        setShowMessage(`Patient registered successfully with token #${PatientVisit.tokenNo}`);
+        setTimeout(() => setShowMessage(null), 3000);
+
+
       } catch (error) {
         console.error("❌ Error:", error.response?.data || error.message);
       }
     }
 
-    // Reset form
     setPatientData({
       fullName: "",
       phone: "",
@@ -273,7 +251,7 @@ const Patients = () => {
   };
 
   const handleSuggestion = (patient) => {
-    const AlreadyGenerated = todayVisits.some(
+    const AlreadyGenerated = todayVisits?.some(
       (visit) => visit.patient._id === patient._id
     );
 
@@ -282,17 +260,18 @@ const Patients = () => {
       setErrors({ message: "Token Already Generated!" });
     } else {
       (async () => {
-        try {
-          const newVisit = await axios.post(
-            `${env.VITE_BASE_PATH}/visit/newVisit/`,
-            {
-              visitData: { ...visitData, tokenNo: currentToken },
-              patientId: patient._id,
-            }
-          );
 
-          setTodayVisits((prev) => [...prev, newVisit.data]);
-          setShowTokenReceipt({ isOpen: true, receiptData: newVisit.data });
+        const payload = {visitData: { ...visitData, tokenNo: currentToken } , patientId: patient._id}
+
+        try {
+          const newVisit = await createVisit(payload);
+
+          setTodayVisits((prev) => [...prev, newVisit]);
+          setShowTokenReceipt({ isOpen: true, receiptData: newVisit });
+          setPatientData({phone: ""});
+          setShowMessage(`Token# ${currentToken} Successfully Generated!`)
+          setTimeout(() => { setShowMessage(null) } , 3000);
+
         } catch (error) {
           console.error("❌ Error:", error.response?.data || error.message);
         }
@@ -334,40 +313,40 @@ const Patients = () => {
           </div>
         </div>
 
-        
-            {/* KPI CARDS */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-              <div className="rounded-xl p-4 shadow-sm bg-blue-50 border border-blue-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-blue-900">
-                  {todayVisits.length}
-                </h3>
-                <p className="text-sm text-blue-700 mt-2">
-                  Total Patients Registered
-                </p>
-              </div>
 
-              <div className="rounded-xl p-4 shadow-sm bg-yellow-50 border border-yellow-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-yellow-900">{patientsWaiting.length}</h3>
-                <p className="text-sm text-yellow-700 mt-2">Patients Waiting</p>
-              </div>
+        {/* KPI CARDS */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+          <div className="rounded-xl p-4 shadow-sm bg-blue-50 border border-blue-100 flex flex-col justify-between">
+            <h3 className="text-3xl font-semibold text-blue-900">
+              {todayVisits?.length || "-"}
+            </h3>
+            <p className="text-sm text-blue-700 mt-2">
+              Total Patients Registered
+            </p>
+          </div>
 
-              <div className="rounded-xl p-4 shadow-sm bg-purple-50 border border-purple-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-purple-900">-</h3>
-                <p className="text-sm text-purple-700 mt-2">In Consultation</p>
-              </div>
+          <div className="rounded-xl p-4 shadow-sm bg-yellow-50 border border-yellow-100 flex flex-col justify-between">
+            <h3 className="text-3xl font-semibold text-yellow-900">{patientsWaiting?.length || '-'}</h3>
+            <p className="text-sm text-yellow-700 mt-2">Patients Waiting</p>
+          </div>
 
-              <div className="rounded-xl p-4 shadow-sm bg-green-50 border border-green-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-green-900">-</h3>
-                <p className="text-sm text-green-700 mt-2">
-                  Completed / Checked Out
-                </p>
-              </div>
+          <div className="rounded-xl p-4 shadow-sm bg-purple-50 border border-purple-100 flex flex-col justify-between">
+            <h3 className="text-3xl font-semibold text-purple-900">-</h3>
+            <p className="text-sm text-purple-700 mt-2">In Consultation</p>
+          </div>
 
-              <div className="rounded-xl p-4 shadow-sm bg-red-50 border border-red-100 flex flex-col justify-between">
-                <h3 className="text-3xl font-semibold text-red-900">-</h3>
-                <p className="text-sm text-red-700 mt-2">No-Show / Cancelled</p>
-              </div>
-            </div>
+          <div className="rounded-xl p-4 shadow-sm bg-green-50 border border-green-100 flex flex-col justify-between">
+            <h3 className="text-3xl font-semibold text-green-900">-</h3>
+            <p className="text-sm text-green-700 mt-2">
+              Completed / Checked Out
+            </p>
+          </div>
+
+          <div className="rounded-xl p-4 shadow-sm bg-red-50 border border-red-100 flex flex-col justify-between">
+            <h3 className="text-3xl font-semibold text-red-900">-</h3>
+            <p className="text-sm text-red-700 mt-2">No-Show / Cancelled</p>
+          </div>
+        </div>
 
 
         {/* <button
@@ -391,11 +370,11 @@ const Patients = () => {
               <h2 className="text-lg font-semibold text-gray-900 mb-6">
                 Patient Information
               </h2>
-              {showSuccess.status && (
+              {showMessage && (
                 <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
                   <div className="flex">
                     <div className="text-green-800">
-                      <strong>Success!</strong> {`${showSuccess.message}`}
+                      <strong>Success!</strong> {`${showMessage}`}
                     </div>
                   </div>
                 </div>
@@ -412,11 +391,11 @@ const Patients = () => {
                       type="tel"
                       name="phone"
                       value={patientData.phone}
-                      onBlur={handleBlur}
+                      // onBlur={handleBlur}
                       onChange={handleInputChange}
                       placeholder="Enter phone number"
                       errors={
-                        errors.email && (
+                        errors.phone && (
                           <p className="text-red-500 text-sm mt-1">
                             {errors.phone}
                           </p>
@@ -438,9 +417,10 @@ const Patients = () => {
                             {patient.fullName} – {patient.phone}
                             <button
                               className="cursor-pointer text-blue-600 font-semibold hover:text-white hover:bg-blue-600 active:bg-blue-700 px-4 py-1.5 rounded-md text-sm transition-colors duration-200 shadow-sm"
-                              onClick={(e) => {
+                              onMouseDown={(e) => {
                                 e.stopPropagation();
-                                updatePatientInfo(patient);
+                                setEditPatientId(patient._id);
+                                populateDataOnPatientEdit(patient);
                                 setSuggestions([]);
                               }}
                             >
@@ -646,7 +626,7 @@ const Patients = () => {
               >
                 <UserPlus className="h-4 w-4" />
                 <span>
-                  {editedPatientId
+                  {editPatientId
                     ? "Update Patient & Assign Token"
                     : "Register Patient & Assign Token"}
                 </span>
@@ -663,7 +643,7 @@ const Patients = () => {
                 </h2>
                 <div className="text-sm text-gray-500 flex items-center">
                   <Clock className="h-4 w-4 mr-1" />
-                  {todayVisits.patient?.length} patients
+                  {todayVisits?.patient?.length} patients
                 </div>
               </div>
             </div>
@@ -716,7 +696,7 @@ const Patients = () => {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium text-gray-900">
-                        #{visit?.tokenNo.slice(-3)}
+                        #{visit?.tokenNo.slice(-3)} 
                       </div>
                       <div
                         className={`px-2 py-1 rounded-full text-xs font-medium ${visit.priority === "emergency"
@@ -729,11 +709,17 @@ const Patients = () => {
                         {visit?.status}
                       </div>
                     </div>
-                    <div className="text-sm text-gray-700">
-                      {visit.patient?.fullName}
-                    </div>
+                      <div className="text-sm text-gray-700">
+                        {visit.patient?.fullName} 
+                      </div>
+
+                  <div className="flex justify-between">
                     <div className="text-xs text-gray-500 mt-1">
                       {visit?.appointmentType} • {visit?.registrationTime}
+                    </div>
+                      <div className="text-sm text-gray-700">
+                        {visit.patient?.phone} 
+                      </div>
                     </div>
                   </div>
                 ))

@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {useNavigate , BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Patients from './components/Patients';
 import DoctorScreen from './components/Doctor';
@@ -9,8 +9,10 @@ import PatientList from './pages/PatientList';
 import Login from './pages/login';
 import SignUp from './pages/SignUp';
 import DataTableGuide from './pages/Guide';
-import { AuthProvider } from './context/AuthProvider';
+
 import ProtectedRoute from './components/ProtectedRoute';
+
+
 
 const App = () => {
     return (

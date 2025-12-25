@@ -1,5 +1,5 @@
 import { useState , useEffect , useMemo , useRef } from 'react';
-import { getPatient } from '../api/patientService';
+import { getPatient } from "../api/services/patientService";
 import { usePatientColumns , columnFields } from '../constants/patientColumns'
 import DataTable from '../components/dataTable';
 
