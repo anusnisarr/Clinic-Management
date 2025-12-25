@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 // import PatientFileModal from "./PatientModal";
-import { getTodayVisits , createNewVisitAndPatient , createVisit } from "../api/services/visitService";
-import { getPatientByPhone, updatedPatientDetails } from "../api/services/patientService";
-import TokenReceipt from "./TokenReceiptViewer";
+import { getTodayVisits , createNewVisitAndPatient , createVisit } from "../api/services/visitService.js";
+import { getPatientByPhone, updatedPatientDetails } from "../api/services/patientService.js";
+import TokenReceipt from "../components/TokenReceiptViewer.jsx";
 import { socket } from "../socket.js";
 import {
   CalendarDays,
@@ -15,10 +15,10 @@ import {
   Clock,
   UserPlus,
 } from "lucide-react";
-import { TextInputField } from "./inputFields.jsx";
+import { TextInputField } from "../components/inputFields.jsx";
 const env = import.meta.env;
 
-const Patients = () => {
+const PatientRegistration = () => {
   const [editPatientId, setEditPatientId] = useState("");
   const [todayVisits, setTodayVisits] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -746,4 +746,4 @@ const Patients = () => {
   );
 };
 
-export default Patients;
+export default PatientRegistration;

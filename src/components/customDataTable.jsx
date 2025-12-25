@@ -1,193 +1,122 @@
 import { useState } from "react";
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
- 
+import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Filter } from 'lucide-react';
 
-// Main Reusable Table Component
 const CustomDataTable = ({
+  title = "Patient Registry",
+  description = "Manage and view visit history",
   rows = [],
   columns = [],
   onRowClick = null,
-  searchable = true,
-  searchPlaceholder = "Search...",
-  pagination = true,
+  searchPlaceholder = "Search records...",
   pageSize = 10,
-  rowsPerPageOptions = [5, 10, 20, 50],
-  emptyMessage = "No data available",
-  emptyIcon = null,
-  className = "",
-  headerClassName = "",
-  rowClassName = "",
-  cellClassName = "",
-  hoverEffect = true
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentPageSize, setCurrentPageSize] = useState(pageSize);
+  const [currentPageSize] = useState(pageSize);
 
-  // Filter rows based on search
-  const filteredRows = searchable
-    ? rows.filter((row) => {
-        const searchLower = searchQuery.toLowerCase();
-        return columns.some((col) => {
-          const value = row[col.field];
-          if (value === null || value === undefined) return false;
-          return String(value).toLowerCase().includes(searchLower);
-        });
-      })
-    : rows;
+  const filteredRows = rows.filter((row) =>
+    columns.some((col) => String(row[col.field] || "").toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredRows.length / currentPageSize);
   const startIndex = (currentPage - 1) * currentPageSize;
   const endIndex = startIndex + currentPageSize;
-  const paginatedRows = pagination
-    ? filteredRows.slice(startIndex, endIndex)
-    : filteredRows;
+  const paginatedRows = filteredRows.slice(startIndex, endIndex);
 
-  // Reset to first page when search changes
-  const handleSearchChange = (value) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
-
-  // Handle page size change
-  const handlePageSizeChange = (newSize) => {
-    setCurrentPageSize(newSize);
-    setCurrentPage(1);
-  };
-
-  // Render cell content
-  const renderCell = (row, column) => {
-    if (column.renderCell) {
-      return column.renderCell(row);
-    }
-    return row[column.field];
+const theme = {
+    heading: "text-[24px] font-extrabold text-slate-900 tracking-tight",
+    subheading: "text-[15px] font-medium text-slate-500",
+    columnHeader: "text-[11px] font-black text-slate-400 uppercase tracking-[0.15em]",
+    cellText: "text-[14px] font-medium text-slate-600",
+    input: "bg-slate-50 border-slate-200 text-slate-700 placeholder-slate-400"
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow ${className}`}>
-      {/* Search Bar */}
-      {searchable && (
-        <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+    <div className={`magic-table w-full bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden`}>
+      
+      {/* 1. TOP HEADER: Search & Global Actions */}
+      <div className="px-8 py-8 border-b border-slate-100 bg-white">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div>
+            <h2 className={theme.heading}>{title}</h2>
+            <p className={theme.subheading}>{description}</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative group">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search database..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                className={`pl-10 pr-4 py-2.5 w-72 rounded-xl border ${theme.input} focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 focus:bg-white outline-none transition-all duration-200 font-medium`}
+              />
+            </div>
+            <button className="p-2.5 text-slate-500 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+              <Filter className="h-4 w-4" />
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Table */}
+      {/* 2. TABLE BODY */}
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className={`bg-gray-50 border-b border-gray-200 ${headerClassName}`}>
-            <tr>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-slate-50/40">
               {columns.map((column) => (
-                <th
-                  key={column.field}
-                  className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ${
-                    column.headerClassName || ""
-                  }`}
-                  style={{
-                    width: column.width || "auto",
-                    textAlign: column.align || "left"
-                  }}
-                >
+                <th key={column.field} className={`px-8 py-5 border-b border-slate-100 ${theme.columnHeader}`}>
                   {column.headerName}
                 </th>
               ))}
+              <th className="px-8 py-5 border-b border-slate-100"></th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedRows.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length} className="px-6 py-12 text-center">
-                  <div className="flex flex-col items-center justify-center text-gray-500">
-                    {emptyIcon && <div className="mb-4">{emptyIcon}</div>}
-                    <p className="text-lg">{emptyMessage}</p>
-                  </div>
+          <tbody className="divide-y divide-slate-50">
+            {paginatedRows.map((row, idx) => (
+              <tr key={idx} className="group hover:bg-slate-50/50 transition-all duration-150">
+                {columns.map((column) => (
+                  <td key={column.field} className={`px-8 py-6 ${theme.cellText}`}>
+                    {column.renderCell ? column.renderCell(row) : (
+                      <span className="group-hover:text-slate-900 transition-colors">{row[column.field]}</span>
+                    )}
+                  </td>
+                ))}
+                <td className="px-8 py-6 text-right">
+                   <button className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg transition-all shadow-sm">
+                      <MoreHorizontal className="h-5 w-5" />
+                   </button>
                 </td>
               </tr>
-            ) : (
-              paginatedRows.map((row, rowIndex) => (
-                <tr
-                  key={row.id || rowIndex}
-                  onClick={() => onRowClick && onRowClick(row)}
-                  className={`${
-                    hoverEffect ? "hover:bg-gray-50 transition-colors" : ""
-                  } ${onRowClick ? "cursor-pointer" : ""} ${
-                    rowClassName || ""
-                  }`}
-                >
-                  {columns.map((column) => (
-                    <td
-                      key={column.field}
-                      className={`px-6 py-4 ${
-                        column.cellClassName || cellClassName || ""
-                      }`}
-                      style={{
-                        textAlign: column.align || "left",
-                        whiteSpace: column.wrap ? "normal" : "nowrap"
-                      }}
-                    >
-                      {renderCell(row, column)}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
-      {pagination && filteredRows.length > 0 && (
-        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">Rows per page:</span>
-            <select
-              value={currentPageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {rowsPerPageOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-700">
-              {startIndex + 1}-{Math.min(endIndex, filteredRows.length)} of{" "}
-              {filteredRows.length}
-            </span>
-
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
-              </button>
-              <button
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
-          </div>
+      {/* 3. PAGINATION FOOTER */}
+      <div className="px-8 py-6 flex items-center justify-between bg-white border-t border-slate-100">
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+           Showing {filteredRows.length > 0 ? startIndex + 1 : 0} — {Math.min(endIndex, filteredRows.length)} of {filteredRows.length}
         </div>
-      )}
+        
+        <div className="flex gap-3">
+          <button
+            onClick={() => setCurrentPage(prev => prev - 1)}
+            disabled={currentPage === 1}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
+            <ChevronLeft className="h-4 w-4" /> Prev
+          </button>
+          <button
+            onClick={() => setCurrentPage(prev => prev + 1)}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
+            Next <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

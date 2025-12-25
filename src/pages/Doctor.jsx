@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import CustomDataTable from "../components/customDataTable";
 import { Chip, Typography } from "@mui/material";
+import { MoreHorizontal } from 'lucide-react';
 import { getVisits } from "../api/services/visitService";
 
 export default function PatientManagement() {
@@ -11,7 +12,7 @@ export default function PatientManagement() {
   const [error, setError] = useState(null);
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [search, setSearch] = useState("");
-  const [selectedRow, setSelectedRow] = useState(null);  
+  const [selectedRow, setSelectedRow] = useState(null);
   const env = import.meta.env;
 
   // Your existing fetchData function
@@ -33,15 +34,23 @@ export default function PatientManagement() {
 
   // Define columns with custom rendering
   const columns = [
-    {
-      field: "tokenNo",
-      headerName: "Token",
-      width: 120,
-      renderCell: (params) => {
-        console.log(params.tokenNo); // check here
-        return <Chip label={params.tokenNo || "N/A"} />;
-      }
-    },
+{
+  field: "tokenNo",
+  headerName: "Token",
+  width: 120,
+  renderCell: (row) => {
+    // Check if token exists
+    const token = row.tokenNo;
+
+    return (
+      <div className="flex items-center justify-start h-full">
+        <span className="inline-flex items-center justify-center px-2.5 py-1 bg-slate-900 text-white text-xs font-black tracking-tighter rounded-md shadow-sm border border-slate-900 min-w-[40px]">
+          #{token || "—"}
+        </span>
+      </div>
+    );
+  }
+},
     {
       field: "fullName",
       headerName: "Patient Name",
@@ -56,52 +65,51 @@ export default function PatientManagement() {
     { field: "appointmentType", headerName: "Type", width: 130 },
     { field: "registrationTime", headerName: "Registration", width: 180 },
     {
-      field: "status",
-      headerName: "Status",
-      width: 50,
-      renderCell: (params) => {
-        const colors = {
-          waiting: "warning",
-          "in-progress": "info",
-          completed: "success",
-          hold: "default"
+      field: 'status',
+      headerName: 'Status',
+      renderCell: (row) => {
+        // Logic for muted-pill style
+        const statusStyles = {
+          Completed: "bg-emerald-50 text-emerald-700 border-emerald-100",
+          Pending: "bg-amber-50 text-amber-700 border-amber-100",
+          Cancelled: "bg-slate-50 text-slate-600 border-slate-200"
         };
-        return <Chip label={params.status} color={colors[params.status]} size="small" />;
+
+        return (
+          <span className={`px-3 py-1 rounded-full text-[15px] font-bold border ${statusStyles[row.status] || statusStyles.Cancelled}`}>
+            {row.status}
+          </span>
+        );
       }
     },
     {
       field: "actions",
       headerName: "Actions",
       width: "250px",
-      align: "center",
+      align: "right", // Professional tables usually right-align actions
       renderCell: (row) => (
-        <div className="flex items-center justify-center space-x-2">
+        <div className="flex items-center justify-end gap-2 pr-2">
+          {/* 1. "Done" - Clean Outline Style */}
           <button
             onClick={(e) => {
               e.stopPropagation();
-              alert(`Marking ${row.name} as done`);
+              alert(`Marking ${row.fullName} as done`);
             }}
-            className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-base font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all group"
           >
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 group-hover:scale-125 transition-transform" />
             Done
           </button>
+
+          {/* 2. "Hold" - Subtle Muted Style */}
           <button
             onClick={(e) => {
               e.stopPropagation();
-              alert(`Putting ${row.name} on hold`);
+              alert(`Putting ${row.fullName} on hold`);
             }}
-            className="px-3 py-1 text-xs font-medium text-white bg-yellow-500 rounded hover:bg-yellow-600 transition-colors"
+            className="px-3 py-1.5 text-base font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 transition-all"
           >
             Hold
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedRow(row);
-            }}
-            className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
-          >
-            Details
           </button>
         </div>
       )
@@ -111,7 +119,7 @@ export default function PatientManagement() {
   // Handler functions
   const handleStatusUpdate = (patientId, newStatus, rowData) => {
     console.log('Update status:', patientId, newStatus);
-    
+
     // Socket emit
     socket.emit("status-updated", {
       patientId: patientId,
@@ -121,7 +129,7 @@ export default function PatientManagement() {
     // Update local state
     setVisitData(prev => ({
       ...prev,
-      rows: prev.rows.map(row => 
+      rows: prev.rows.map(row =>
         row.id === patientId ? { ...row, status: newStatus } : row
       )
     }));
@@ -163,21 +171,21 @@ export default function PatientManagement() {
       onPaginationChange={setPaginationModel}
       onFilterModelChange={handleSearchChange}
       title="Visit History"
-      
+
       // New props for buttons and dialog
       showActionButtons={true}
       onStatusUpdate={handleStatusUpdate}
       onSaveVisit={handleSaveVisit}
       onViewDetails={handleViewDetails}
-      
-      
+
+
       // Optional: Customize buttons
       actionButtonsConfig={{
         showDone: true,
         showHold: true,
         showDetails: true,
       }}
-      
+
       // Optional: Customize dialog
       detailsDialogConfig={{
         showPatientInfo: true,

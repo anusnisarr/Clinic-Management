@@ -1,15 +1,13 @@
-import React from 'react';
 import './App.css';
-import {useNavigate , BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import Patients from './components/Patients';
-import DoctorScreen from './components/Doctor';
+import PatientRegistration from './pages/PatientRegistration';
+import DoctorScreen from './pages/Doctor';
 import VisitHistory from './pages/VisitHistory';
 import PatientList from './pages/PatientList';
 import Login from './pages/login';
 import SignUp from './pages/SignUp';
 import DataTableGuide from './pages/Guide';
-
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -22,8 +20,8 @@ const App = () => {
                         <Route path="signup" element={<SignUp />} />
                     <Route element={<ProtectedRoute />}>
                         <Route path="/" element={<Layout />}>
-                            <Route index element={<Patients />} />
-                            <Route path="Patients" element={<Patients />} />
+                            <Route index element={<PatientRegistration />} />
+                            <Route path="Patients" element={<PatientRegistration />} />
                             <Route path="DoctorScreen" element={<DoctorScreen />} />
                             <Route path="VisitHistory" element={<VisitHistory />} />
                             <Route path="PatientList" element={<PatientList />} />
